@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaryWEB | Fox and Hounds</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+        --primary-dark: #0c0c0c;
+        --primary-light: #ffffff;
+        --accent-start: #00F0FF;
+        --accent-end: #FF00F6;
+        --transition-slow: 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        --transition-fast: 0.3s ease;
+        --section-spacing: 80px;
+    }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        font-family: 'Inter', sans-serif;
+        color: var(--primary-dark);
+        background-color: var(--primary-light);
+        overflow-x: hidden;
+        line-height: 1.6;
+        transition: background-color 0.5s ease;
+    }
+    body.dark-mode {
+        background-color: var(--primary-dark);
+        color: var(--primary-light);
+    }
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+    }
+    .container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 0 40px;
+    }
+    /* Navigation */
+    nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 40px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        transition: var(--transition-fast);
+    }
+    body.dark-mode nav {
+        background: rgba(12, 12, 12, 0.8);
+    }
+    .logo {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 28px;
+        position: relative;
+        cursor: pointer;
+    }
+    .logo-morph {
+        display: inline-block;
+        transition: var(--transition-slow);
+    }
+    .nav-links {
+        display: flex;
+        gap: 40px;
+    }
+    .nav-link {
+        text-decoration: none;
+        color: inherit;
+        font-weight: 500;
+        position: relative;
+        padding: 8px 0;
+        overflow: hidden;
+    }
+    .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        transform: translateX(-100%);
+        transition: transform 0.4s ease;
+    }
+    .nav-link:hover::after {
+        transform: translateX(0);
+    }
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    .mode-toggle {
+        width: 50px;
+        height: 24px;
+        background: #e0e0e0;
+        border-radius: 12px;
+        position: relative;
+        cursor: pointer;
+        transition: var(--transition-fast);
+    }
+    body.dark-mode .mode-toggle {
+        background: #333;
+    }
+    .toggle-thumb {
+        width: 20px;
+        height: 20px;
+        background: var(--primary-light);
+        border-radius: 50%;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.3s ease;
+    }
+    body.dark-mode .toggle-thumb {
+        transform: translateX(26px);
+        background: var(--primary-dark);
+    }
+    /* Main Section */
+    .game-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: var(--section-spacing) 0;
+        padding-top: 120px;
+    }
+    .section-title {
+        font-size: 3.5rem;
+        margin-bottom: 60px;
+        text-align: center;
+        position: relative;
+    }
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        border-radius: 2px;
+    }
+    /* Button CSS */
+    .button-86 {
+        all: unset;
+        width: 100%;
+        max-width: 250px;
+        height: 50px;
+        font-size: 1.2rem;
+        background: transparent;
+        border: none;
+        position: relative;
+        color: #f0f0f0;
+        cursor: pointer;
+        z-index: 1;
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        text-decoration: none;
+        gap: 10px;
+        border-radius: 10px;
+    }
+    .button-86::after,
+    .button-86::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        z-index: -99999;
+        transition: all .4s;
+    }
+    .button-86::before {
+        transform: translate(0%, 0%);
+        width: 100%;
+        height: 100%;
+        background: #28282d;
+        border-radius: 10px;
+    }
+    body.dark-mode .button-86::before {
+        background: #1a1a1e;
+    }
+    .button-86::after {
+        transform: translate(10px, 10px);
+        width: 35px;
+        height: 35px;
+        background: #ffffff15;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        border-radius: 50px;
+    }
+    .button-86:hover::before {
+        transform: translate(5%, 20%);
+        width: 110%;
+        height: 110%;
+    }
+    .button-86:hover::after {
+        border-radius: 10px;
+        transform: translate(0, 0);
+        width: 100%;
+        height: 100%;
+    }
+    .button-86:active::after {
+        transition: 0s;
+        transform: translate(0, 5%);
+    }
+    /* Light Mode button adjustments */
+    body:not(.dark-mode) .button-86 {
+        color: var(--primary-dark);
+    }
+    body:not(.dark-mode) .button-86::before {
+        background: #e0e0e0;
+    }
+    body:not(.dark-mode) .button-86::after {
+        background: #00000015;
+    }
+    .button-86.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    /* Game Specific Styles */
+    .game-area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+        width: 100%;
+        max-width: 900px;
+    }
+    #game-board {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        grid-template-rows: repeat(8, 1fr);
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border: 4px solid #333;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        border-radius: 10px;
+        background-color: #f0d2b6; /* Light square color */
+    }
+    body.dark-mode #game-board {
+        border-color: #eee;
+    }
+    .cell {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      cursor: pointer;
+    }
+    .cell.dark-square {
+      background-color: #b58863; /* Dark square color */
+    }
+    .cell.dark-square:hover {
+      background-color: rgba(0,0,0,0.2);
+    }
+    .cell.highlight {
+      background-color: rgba(255, 255, 0, 0.5); /* Yellow highlight for valid moves */
+    }
+    .cell.hint-move {
+      animation: pulse-hint 1.5s infinite;
+    }
+    @keyframes pulse-hint {
+        0% { transform: scale(0.8); background-color: rgba(0, 255, 0, 0.7); }
+        50% { transform: scale(1.2); background-color: rgba(0, 255, 0, 0.9); }
+        100% { transform: scale(0.8); background-color: rgba(0, 255, 0, 0.7); }
+    }
+    .piece {
+      width: 70%;
+      height: 70%;
+      border-radius: 50%;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5rem;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .piece.fox {
+      background-color: #c94a00;
+      color: #fff;
+    }
+    .piece.hound {
+      background-color: #333;
+      color: #fff;
+    }
+    .game-info {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 800px;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin-top: 20px;
+    }
+    .status-message {
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .message-box-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    }
+    .message-box {
+        background: var(--primary-dark);
+        color: var(--primary-light);
+        padding: 2rem;
+        border-radius: 1rem;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        max-width: 400px;
+        width: 90%;
+    }
+    .message-box h3 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    .message-box p {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+    .message-box .button-86 {
+        max-width: 200px;
+        font-size: 1rem;
+    }
+    @media (max-width: 768px) {
+        .container {
+            padding: 0 20px;
+        }
+        nav {
+            padding: 16px 20px;
+        }
+        .logo {
+            font-size: 24px;
+        }
+        .nav-links {
+            display: none;
+        }
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+        }
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="logo">
+    <span class="logo-morph">WaryWEB</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Games</a>
+    <a href="index.html" class="nav-link">Utilities</a>
+    <a href="index.html" class="nav-link">About</a>
+    <a href="index.html" class="nav-link">Contact</a>
+  </div>
+  <div class="nav-actions">
+    <div class="mode-toggle" id="modeToggle">
+      <div class="toggle-thumb"></div>
+    </div>
+  </div>
+</nav>
+
+<section id="fox-and-hounds-section" class="game-container">
+  <div class="container game-area">
+    <h2 class="section-title">Fox and Hounds</h2>
+
+    <!-- Game Board and UI -->
+    <div id="game-board"></div>
+
+    <div class="game-info">
+      <p id="turn-display"></p>
+    </div>
+    <div class="status-message" id="status-message"></div>
+
+    <div class="game-controls flex justify-center gap-4 mt-6">
+      <button id="start-game" class="button-86">Start Game</button>
+      <button id="hint-button" class="button-86 hidden">Show Fox Hint</button>
+      <button id="restart-button" class="button-86 hidden">Restart</button>
+    </div>
+  </div>
+</section>
+
+<!-- Message Box Overlay -->
+<div id="message-box-overlay" class="message-box-overlay">
+  <div id="message-box" class="message-box">
+    <h3 id="message-box-title"></h3>
+    <p id="message-box-text"></p>
+    <div id="message-box-buttons" class="flex justify-center gap-4"></div>
+  </div>
+</div>
+
+<script>
+  // --- FOX AND HOUNDS Game Logic and UI Management ---
+
+  // Game state variables
+  const BOARD_SIZE = 8;
+  const EMPTY = 0;
+  const FOX = 1;
+  const HOUND = 2;
+
+  let board = [];
+  let gameRunning = false;
+  let currentPlayer = FOX;
+  let selectedPiecePos = null;
+  const AI_THINKING_TIME = 1000; // 1 second delay for AI
+
+  // DOM elements
+  const boardEl = document.getElementById('game-board');
+  const turnDisplayEl = document.getElementById('turn-display');
+  const statusMessageEl = document.getElementById('status-message');
+  const startGameBtn = document.getElementById('start-game');
+  const hintBtn = document.getElementById('hint-button');
+  const restartBtn = document.getElementById('restart-button');
+  const messageBoxOverlay = document.getElementById('message-box-overlay');
+  const messageBoxTitle = document.getElementById('message-box-title');
+  const messageBoxText = document.getElementById('message-box-text');
+  const messageBoxButtons = document.getElementById('message-box-buttons');
+  const modeToggle = document.getElementById('modeToggle');
+
+  // --- Game State Management ---
+
+  /**
+   * Initializes the game board and pieces.
+   */
+  function initGame() {
+    gameRunning = true;
+    currentPlayer = FOX;
+    selectedPiecePos = null;
+
+    // Clear the board and place pieces in their starting positions
+    board = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(EMPTY));
+    board[0][1] = HOUND;
+    board[0][3] = HOUND;
+    board[0][5] = HOUND;
+    board[0][7] = HOUND;
+    board[7][0] = FOX;
+
+    updateUI();
+    turnDisplayEl.textContent = "Player's Turn (Fox)";
+    statusMessageEl.textContent = "Game started!";
+
+    // Manage button visibility
+    startGameBtn.classList.add('hidden');
+    restartBtn.classList.remove('hidden');
+    hintBtn.classList.remove('hidden');
+  }
+
+  /**
+   * Resets the game to the initial state with only the Start button visible.
+   */
+  function resetGame() {
+    gameRunning = false;
+    board = [];
+    selectedPiecePos = null;
+    updateUI();
+
+    // Manage button visibility
+    startGameBtn.classList.remove('hidden');
+    restartBtn.classList.add('hidden');
+    hintBtn.classList.add('hidden');
+
+    turnDisplayEl.textContent = "";
+    statusMessageEl.textContent = "";
+  }
+
+  /**
+   * Updates the visual representation of the board based on the game state.
+   */
+  function updateUI() {
+    boardEl.innerHTML = '';
+    buildBoardVisuals();
+  }
+
+  /**
+   * Creates the visual grid and places pieces.
+   */
+  function buildBoardVisuals() {
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        const cell = document.createElement('div');
+        cell.className = `cell`;
+        cell.dataset.row = r;
+        cell.dataset.col = c;
+
+        // Only dark squares are playable in Fox and Hounds
+        if ((r + c) % 2 !== 0) {
+          cell.classList.add('dark-square');
+          cell.addEventListener('click', handleCellClick);
+        }
+
+        const piece = board[r][c];
+        if (piece !== EMPTY) {
+          const pieceEl = document.createElement('div');
+          pieceEl.className = `piece ${piece === FOX ? 'fox' : 'hound'}`;
+          pieceEl.textContent = piece === FOX ? '🦊' : '🐺';
+          cell.appendChild(pieceEl);
+        }
+
+        boardEl.appendChild(cell);
+      }
+    }
+  }
+
+  // --- Move Validation and Logic ---
+
+  /**
+   * Finds all valid moves for a given piece.
+   * @param {number} r The row of the piece.
+   * @param {number} c The column of the piece.
+   * @returns {Array<{r: number, c: number}>} An array of valid move coordinates.
+   */
+  function getValidMoves(r, c) {
+      const piece = board[r][c];
+      const moves = [];
+      let directions;
+
+      if (piece === FOX) {
+          // Fox can move diagonally in all four directions
+          directions = [
+              { dr: -1, dc: -1 }, { dr: -1, dc: 1 },
+              { dr: 1, dc: -1 }, { dr: 1, dc: 1 }
+          ];
+      } else if (piece === HOUND) {
+          // Hounds can only move diagonally forward
+          directions = [{ dr: 1, dc: -1 }, { dr: 1, dc: 1 }];
+      } else {
+          return moves;
+      }
+
+      for (const dir of directions) {
+          const newR = r + dir.dr;
+          const newC = c + dir.dc;
+          if (newR >= 0 && newR < BOARD_SIZE && newC >= 0 && newC < BOARD_SIZE && board[newR][newC] === EMPTY) {
+              moves.push({ r: newR, c: newC });
+          }
+      }
+      return moves;
+  }
+
+  /**
+   * Highlights the cells that are valid moves for the selected piece.
+   */
+  function highlightValidMoves() {
+      // Clear previous highlights
+      document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('highlight'));
+
+      if (selectedPiecePos) {
+          const { r, c } = selectedPiecePos;
+          const validMoves = getValidMoves(r, c);
+          validMoves.forEach(move => {
+              const cell = boardEl.querySelector(`.cell[data-row='${move.r}'][data-col='${move.c}']`);
+              if (cell) {
+                  cell.classList.add('highlight');
+              }
+          });
+      }
+  }
+
+  /**
+   * Handles a click on a cell, either to select a piece or to make a move.
+   * @param {Event} event The click event.
+   */
+  function handleCellClick(event) {
+    if (!gameRunning || currentPlayer !== FOX) return;
+
+    const targetCell = event.currentTarget;
+    const r = parseInt(targetCell.dataset.row);
+    const c = parseInt(targetCell.dataset.col);
+
+    // If a piece is already selected, try to move to the new cell
+    if (selectedPiecePos) {
+      if (board[r][c] === EMPTY) {
+        const validMoves = getValidMoves(selectedPiecePos.r, selectedPiecePos.c);
+        const isValid = validMoves.some(move => move.r === r && move.c === c);
+
+        if (isValid) {
+          movePiece(selectedPiecePos.r, selectedPiecePos.c, r, c);
+          switchPlayer();
+        } else {
+          statusMessageEl.textContent = "Invalid move. Please try again.";
+        }
+      }
+      selectedPiecePos = null;
+      highlightValidMoves();
+    }
+    // Otherwise, select a piece if it's the current player's turn
+    else {
+      if (board[r][c] === FOX) {
+        selectedPiecePos = { r, c };
+        highlightValidMoves();
+        statusMessageEl.textContent = "Move the Fox.";
+      }
+    }
+  }
+
+  /**
+   * Moves a piece from one cell to another.
+   * @param {number} fromR Starting row.
+   * @param {number} fromC Starting column.
+   * @param {number} toR Destination row.
+   * @param {number} toC Destination column.
+   */
+  function movePiece(fromR, fromC, toR, toC) {
+    const piece = board[fromR][fromC];
+    board[fromR][fromC] = EMPTY;
+    board[toR][toC] = piece;
+    updateUI();
+  }
+
+  /**
+   * Switches the current player and checks for win conditions.
+   */
+  function switchPlayer() {
+    checkWinConditions();
+
+    currentPlayer = currentPlayer === FOX ? HOUND : FOX;
+
+    if (currentPlayer === FOX) {
+      turnDisplayEl.textContent = "Player's Turn (Fox)";
+      hintBtn.classList.remove('hidden');
+    } else {
+      turnDisplayEl.textContent = "AI's Turn (Hounds)";
+      hintBtn.classList.add('hidden');
+      setTimeout(aiMove, AI_THINKING_TIME);
+    }
+  }
+
+  // --- AI Logic (Hounds) ---
+
+  /**
+   * The AI's turn to move the Hounds.
+   */
+  function aiMove() {
+      // Find the fox's position
+      let foxPos = findPiece(FOX);
+      if (!foxPos) return;
+
+      let bestMove = null;
+      let minDistance = Infinity;
+
+      // Iterate through all hounds and find the best move
+      const houndsPositions = findPiece(HOUND, true);
+      for (const houndPos of houndsPositions) {
+          const validMoves = getValidMoves(houndPos.r, houndPos.c);
+          if (validMoves.length > 0) {
+              for (const move of validMoves) {
+                  // The AI's simple heuristic: move the hound that is closest to the fox
+                  const distance = Math.abs(foxPos.c - move.c) + Math.abs(foxPos.r - move.r);
+                  if (distance < minDistance) {
+                      minDistance = distance;
+                      bestMove = { from: houndPos, to: move };
+                  }
+              }
+          }
+      }
+
+      if (bestMove) {
+          movePiece(bestMove.from.r, bestMove.from.c, bestMove.to.r, bestMove.to.c);
+      }
+
+      switchPlayer();
+  }
+
+  /**
+   * Finds the position of a piece on the board.
+   * @param {number} piece The piece to find (FOX or HOUND).
+   * @param {boolean} all If true, finds all instances of the piece.
+   * @returns {Object | Array | null} The position(s) of the piece.
+   */
+  function findPiece(piece, all = false) {
+      const positions = [];
+      for (let r = 0; r < BOARD_SIZE; r++) {
+          for (let c = 0; c < BOARD_SIZE; c++) {
+              if (board[r][c] === piece) {
+                  if (!all) return { r, c };
+                  positions.push({ r, c });
+              }
+          }
+      }
+      return all ? positions : null;
+  }
+
+  // --- Hint Logic ---
+
+  /**
+   * Shows a hint for the best move for the Fox.
+   * The hint is a move that keeps the fox in the lowest possible row.
+   */
+  function showHint() {
+      const foxPos = findPiece(FOX);
+      if (!foxPos) return;
+
+      const validMoves = getValidMoves(foxPos.r, foxPos.c);
+      if (validMoves.length === 0) {
+          statusMessageEl.textContent = "No valid moves for the Fox.";
+          return;
+      }
+
+      // Find the move that keeps the fox in a lower row (closer to the goal)
+      let bestMove = validMoves.sort((a, b) => a.r - b.r)[0];
+
+      document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('hint-move'));
+      const hintCell = boardEl.querySelector(`.cell[data-row='${bestMove.r}'][data-col='${bestMove.c}']`);
+      if (hintCell) {
+          hintCell.classList.add('hint-move');
+      }
+  }
+
+  // --- Win/Loss Condition Checks ---
+
+  /**
+   * Checks if the game has ended and declares the winner.
+   */
+  function checkWinConditions() {
+      const foxPos = findPiece(FOX);
+
+      // Fox wins if it reaches the first row
+      if (foxPos && foxPos.r === 0) {
+          endGame("Fox Wins!");
+          return;
+      }
+
+      // Hounds win if the fox is trapped
+      if (foxPos && getValidMoves(foxPos.r, foxPos.c).length === 0) {
+          endGame("Hounds Win!");
+          return;
+      }
+  }
+
+  /**
+   * Ends the game and displays a message.
+   * @param {string} message The message to display.
+   */
+  function endGame(message) {
+      gameRunning = false;
+      hintBtn.classList.add('hidden');
+      showMessageBox("Game Over", message, true);
+  }
+
+  /**
+   * Displays a custom message box.
+   */
+  function showMessageBox(title, text, showRestartButton = false) {
+      messageBoxTitle.textContent = title;
+      messageBoxText.textContent = text;
+      messageBoxButtons.innerHTML = '';
+
+      if (showRestartButton) {
+          const restartButton = document.createElement('button');
+          restartButton.className = 'button-86';
+          restartButton.textContent = 'Play Again';
+          restartButton.onclick = () => {
+              hideMessageBox();
+              initGame(); // Call initGame to restart immediately
+          };
+          messageBoxButtons.appendChild(restartButton);
+      } else {
+          const okButton = document.createElement('button');
+          okButton.className = 'button-86';
+          okButton.textContent = 'OK';
+          okButton.onclick = hideMessageBox;
+          messageBoxButtons.appendChild(okButton);
+      }
+      messageBoxOverlay.style.display = 'flex';
+  }
+
+  /**
+   * Hides the custom message box.
+   */
+  function hideMessageBox() {
+      messageBoxOverlay.style.display = 'none';
+  }
+
+  // --- Event Listeners ---
+  startGameBtn.addEventListener('click', initGame);
+  restartBtn.addEventListener('click', initGame);
+  hintBtn.addEventListener('click', showHint);
+  modeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+  });
+
+  // Initial setup
+  document.addEventListener('DOMContentLoaded', () => {
+    resetGame();
+  });
+</script>
+</body>
+</html>

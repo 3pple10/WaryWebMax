@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaryWEB | Breakout Game</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+        --primary-dark: #0c0c0c;
+        --primary-light: #ffffff;
+        --accent-start: #00F0FF;
+        --accent-end: #FF00F6;
+        --transition-slow: 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        --transition-fast: 0.3s ease;
+        --section-spacing: 80px;
+    }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        font-family: 'Inter', sans-serif;
+        color: var(--primary-dark);
+        background-color: var(--primary-light);
+        overflow-x: hidden;
+        line-height: 1.6;
+        transition: background-color 0.5s ease;
+    }
+    body.dark-mode {
+        background-color: var(--primary-dark);
+        color: var(--primary-light);
+    }
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+    }
+    .container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 0 40px;
+    }
+    /* Navigation */
+    nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 40px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        transition: var(--transition-fast);
+    }
+    body.dark-mode nav {
+        background: rgba(12, 12, 12, 0.8);
+    }
+    .logo {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 28px;
+        position: relative;
+        cursor: pointer;
+    }
+    .logo-morph {
+        display: inline-block;
+        transition: var(--transition-slow);
+    }
+    .nav-links {
+        display: flex;
+        gap: 40px;
+    }
+    .nav-link {
+        text-decoration: none;
+        color: inherit;
+        font-weight: 500;
+        position: relative;
+        padding: 8px 0;
+        overflow: hidden;
+    }
+    .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        transform: translateX(-100%);
+        transition: transform 0.4s ease;
+    }
+    .nav-link:hover::after {
+        transform: translateX(0);
+    }
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    .mode-toggle {
+        width: 50px;
+        height: 24px;
+        background: #e0e0e0;
+        border-radius: 12px;
+        position: relative;
+        cursor: pointer;
+        transition: var(--transition-fast);
+    }
+    body.dark-mode .mode-toggle {
+        background: #333;
+    }
+    .toggle-thumb {
+        width: 20px;
+        height: 20px;
+        background: var(--primary-light);
+        border-radius: 50%;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.3s ease;
+    }
+    body.dark-mode .toggle-thumb {
+        transform: translateX(26px);
+        background: var(--primary-dark);
+    }
+    /* Main Section */
+    .game-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: var(--section-spacing) 0;
+        padding-top: 120px;
+    }
+    .section-title {
+        font-size: 3.5rem;
+        margin-bottom: 60px;
+        text-align: center;
+        position: relative;
+    }
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        border-radius: 2px;
+    }
+    /* Button CSS */
+    .button-86 {
+        all: unset;
+        width: 100%;
+        max-width: 250px;
+        height: 50px;
+        font-size: 1.2rem;
+        background: transparent;
+        border: none;
+        position: relative;
+        color: #f0f0f0;
+        cursor: pointer;
+        z-index: 1;
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        text-decoration: none;
+        gap: 10px;
+        border-radius: 10px;
+    }
+    .button-86::after,
+    .button-86::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        z-index: -99999;
+        transition: all .4s;
+    }
+    .button-86::before {
+        transform: translate(0%, 0%);
+        width: 100%;
+        height: 100%;
+        background: #28282d;
+        border-radius: 10px;
+    }
+    body.dark-mode .button-86::before {
+        background: #1a1a1e;
+    }
+    .button-86::after {
+        transform: translate(10px, 10px);
+        width: 35px;
+        height: 35px;
+        background: #ffffff15;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        border-radius: 50px;
+    }
+    .button-86:hover::before {
+        transform: translate(5%, 20%);
+        width: 110%;
+        height: 110%;
+    }
+    .button-86:hover::after {
+        border-radius: 10px;
+        transform: translate(0, 0);
+        width: 100%;
+        height: 100%;
+    }
+    .button-86:active::after {
+        transition: 0s;
+        transform: translate(0, 5%);
+    }
+    /* Light Mode button adjustments */
+    body:not(.dark-mode) .button-86 {
+        color: var(--primary-dark);
+    }
+    body:not(.dark-mode) .button-86::before {
+        background: #e0e0e0;
+    }
+    body:not(.dark-mode) .button-86::after {
+        background: #00000015;
+    }
+    .button-86.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    /* Breakout Game Specific Styles */
+    .game-area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+        width: 100%;
+        max-width: 900px;
+    }
+    #breakout-canvas {
+        background: #f0f0f0;
+        border: 2px solid #333;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        border-radius: 10px;
+        touch-action: none;
+        max-width: 100%;
+        max-height: 80vh; /* Set a maximum height relative to the viewport height */
+    }
+    body.dark-mode #breakout-canvas {
+        background: #1a1a1e;
+        border: 2px solid #eee;
+    }
+    .game-info {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 800px;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin-top: 20px;
+    }
+    .status-message {
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin: 1rem 0;
+    }
+    .message-box-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    }
+    .message-box {
+        background: var(--primary-dark);
+        color: var(--primary-light);
+        padding: 2rem;
+        border-radius: 1rem;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        max-width: 400px;
+        width: 90%;
+    }
+    .message-box h3 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    .message-box p {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+    .message-box .button-86 {
+        max-width: 200px;
+        font-size: 1rem;
+    }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 5px rgba(0,240,255,0.4); }
+        50% { box-shadow: 0 0 15px rgba(0,240,255,0.8); }
+        100% { box-shadow: 0 0 5px rgba(0,240,255,0.4); }
+    }
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .container {
+            padding: 0 20px;
+        }
+        nav {
+            padding: 16px 20px;
+        }
+        .logo {
+            font-size: 24px;
+        }
+        .nav-links {
+            display: none;
+        }
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+        }
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="logo">
+    <span class="logo-morph">WaryWEB</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Games</a>
+    <a href="index.html" class="nav-link">Utilities</a>
+    <a href="index.html" class="nav-link">About</a>
+    <a href="index.html" class="nav-link">Contact</a>
+  </div>
+  <div class="nav-actions">
+    <div class="mode-toggle" id="modeToggle">
+      <div class="toggle-thumb"></div>
+    </div>
+  </div>
+</nav>
+
+<section id="breakout-game-section" class="game-container">
+  <div class="container game-area">
+    <h2 class="section-title">Breakout</h2>
+
+    <canvas id="breakout-canvas"></canvas>
+
+    <div class="game-info">
+      <p>Score: <span id="score">0</span></p>
+      <p>Lives: <span id="lives">3</span></p>
+    </div>
+
+    <div class="game-controls">
+      <div class="game-buttons flex gap-4">
+        <button id="start-button" class="button-86" onclick="startGame()">Start Game</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="message-box-overlay" class="message-box-overlay">
+  <div id="message-box" class="message-box">
+    <h3 id="message-box-title"></h3>
+    <p id="message-box-text"></p>
+    <div id="message-box-buttons" class="flex justify-center gap-4"></div>
+  </div>
+</div>
+
+<script>
+  // --- BREAKOUT Game Logic and UI Management ---
+
+  const canvas = document.getElementById('breakout-canvas');
+  const ctx = canvas.getContext('2d');
+  const startButton = document.getElementById('start-button');
+  const scoreEl = document.getElementById('score');
+  const livesEl = document.getElementById('lives');
+  const messageBoxOverlay = document.getElementById('message-box-overlay');
+  const messageBoxTitle = document.getElementById('message-box-title');
+  const messageBoxText = document.getElementById('message-box-text');
+  const messageBoxButtons = document.getElementById('message-box-buttons');
+  const modeToggle = document.getElementById('modeToggle');
+
+  // Game state variables
+  let gameRunning = false;
+  let score = 0;
+  let lives = 3;
+  let frameId = null;
+
+  // Ball properties
+  const ball = {
+    x: 0,
+    y: 0,
+    dx: 6,
+    dy: -6,
+    radius: 8,
+    color: 'var(--accent-start)'
+  };
+
+  // Paddle properties
+  const paddle = {
+    height: 10,
+    width: 100,
+    x: 0,
+    y: 0,
+    color: 'var(--accent-end)',
+    dx: 8
+  };
+
+  // Brick properties
+  const brickInfo = {
+    row: 5,
+    col: 9,
+    width: 70,
+    height: 20,
+    padding: 10,
+    offsetX: 0,
+    offsetY: 60,
+    visible: true
+  };
+  let bricks = [];
+
+  // Keyboard and touch input
+  let rightPressed = false;
+  let leftPressed = false;
+
+  // --- Core Game Functions ---
+
+  /**
+   * Resizes the canvas to be responsive.
+   */
+  function resizeCanvas() {
+    const gameArea = document.querySelector('.game-area');
+    const containerWidth = gameArea.offsetWidth - 80;
+    const containerHeight = window.innerHeight - 250;
+
+    const widthRatio = containerWidth / 800;
+    const heightRatio = containerHeight / 600;
+    const scaleFactor = Math.min(widthRatio, heightRatio, 1);
+
+    canvas.width = 800 * scaleFactor;
+    canvas.height = 600 * scaleFactor;
+
+    // Adjust all game object dimensions and positions based on the scale factor
+    ball.radius = 8 * scaleFactor;
+    paddle.width = 100 * scaleFactor;
+    paddle.height = 10 * scaleFactor;
+    paddle.x = (canvas.width - paddle.width) / 2;
+    paddle.y = canvas.height - paddle.height - 5;
+    ball.x = canvas.width / 2;
+    ball.y = paddle.y - ball.radius;
+
+    brickInfo.width = 70 * scaleFactor;
+    brickInfo.height = 20 * scaleFactor;
+    brickInfo.padding = 10 * scaleFactor;
+    brickInfo.offsetX = (canvas.width - (brickInfo.col * (brickInfo.width + brickInfo.padding) - brickInfo.padding)) / 2;
+    brickInfo.offsetY = 60 * scaleFactor;
+
+    createBricks();
+    if(gameRunning) {
+      draw();
+    }
+  }
+  window.addEventListener('resize', resizeCanvas);
+
+  /**
+   * Initializes the game state and starts the game loop.
+   */
+  function startGame() {
+      if (gameRunning) return;
+      gameRunning = true;
+      score = 0;
+      lives = 3;
+      ball.dx = 6;
+      ball.dy = -6;
+      resizeCanvas();
+      resetBallAndPaddle();
+      updateUI();
+      hideMessageBox();
+      if (frameId) cancelAnimationFrame(frameId);
+      draw();
+  }
+
+  /**
+   * Resets the ball and paddle to their starting positions.
+   */
+  function resetBallAndPaddle() {
+    ball.x = canvas.width / 2;
+    ball.y = paddle.y - ball.radius;
+    paddle.x = (canvas.width - paddle.width) / 2;
+  }
+
+  /**
+   * Creates the grid of bricks.
+   */
+  function createBricks() {
+    bricks = [];
+    for (let c = 0; c < brickInfo.col; c++) {
+      bricks[c] = [];
+      for (let r = 0; r < brickInfo.row; r++) {
+        const x = c * (brickInfo.width + brickInfo.padding) + brickInfo.offsetX;
+        const y = r * (brickInfo.height + brickInfo.padding) + brickInfo.offsetY;
+        bricks[c][r] = { x, y, ...brickInfo, visible: true };
+      }
+    }
+  }
+
+  /**
+   * Draws the ball on the canvas.
+   */
+  function drawBall() {
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent-start');
+    ctx.fill();
+    ctx.closePath();
+  }
+
+  /**
+   * Draws the paddle on the canvas.
+   */
+  function drawPaddle() {
+    ctx.beginPath();
+    ctx.rect(paddle.x, paddle.y, paddle.width, paddle.height);
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent-end');
+    ctx.fill();
+    ctx.closePath();
+  }
+
+  /**
+   * Draws the bricks on the canvas.
+   */
+  function drawBricks() {
+    bricks.forEach(column => {
+      column.forEach(brick => {
+        if (brick.visible) {
+          ctx.beginPath();
+          ctx.rect(brick.x, brick.y, brick.width, brick.height);
+          ctx.fillStyle = '#666';
+          ctx.fill();
+          ctx.closePath();
+        }
+      });
+    });
+  }
+
+  /**
+   * Updates the game score and lives on the UI.
+   */
+  function updateUI() {
+    scoreEl.textContent = score;
+    livesEl.textContent = lives;
+  }
+
+  /**
+   * Updates the game state (position and collisions).
+   */
+  function update() {
+    movePaddle();
+    moveBall();
+    ballCollision();
+    paddleCollision();
+    brickCollision();
+  }
+
+  /**
+   * Moves the paddle based on mouse, keyboard, and touch input.
+   */
+  function movePaddle() {
+    if (rightPressed && paddle.x + paddle.width < canvas.width) {
+      paddle.x += paddle.dx;
+    } else if (leftPressed && paddle.x > 0) {
+      paddle.x -= paddle.dx;
+    }
+  }
+
+  /**
+   * Moves the ball.
+   */
+  function moveBall() {
+    ball.x += ball.dx;
+    ball.y += ball.dy;
+  }
+
+  /**
+   * Handles ball collisions with the walls.
+   */
+  function ballCollision() {
+    if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+      ball.dx *= -1;
+    }
+    if (ball.y - ball.radius < 0) {
+      ball.dy *= -1;
+    }
+    if (ball.y + ball.radius > canvas.height) {
+      lives--;
+      updateUI();
+      if (lives === 0) {
+        gameOver();
+      } else {
+        resetBallAndPaddle();
+      }
+    }
+  }
+
+  /**
+   * Handles ball collision with the paddle.
+   */
+  function paddleCollision() {
+    if (
+      ball.x > paddle.x &&
+      ball.x < paddle.x + paddle.width &&
+      ball.y + ball.radius > paddle.y &&
+      ball.y - ball.radius < paddle.y + paddle.height
+    ) {
+      ball.dy = -ball.dy;
+    }
+  }
+
+  /**
+   * Handles ball collisions with the bricks.
+   */
+  function brickCollision() {
+    for (let c = 0; c < brickInfo.col; c++) {
+      for (let r = 0; r < brickInfo.row; r++) {
+        const brick = bricks[c][r];
+        if (brick.visible) {
+          if (
+            ball.x + ball.radius > brick.x &&
+            ball.x - ball.radius < brick.x + brick.width &&
+            ball.y + ball.radius > brick.y &&
+            ball.y - ball.radius < brick.y + brick.height
+          ) {
+            ball.dy *= -1;
+            brick.visible = false;
+            score += 10;
+            updateUI();
+
+            const remainingBricks = bricks.flat().filter(b => b.visible);
+            if (remainingBricks.length === 0) {
+              winGame();
+            }
+            return; // Exit the function after the first collision is handled
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Displays the game over message and restarts.
+   */
+  function gameOver() {
+    gameRunning = false;
+    showMessageBox("Game Over", `Your final score is ${score}.`, true);
+  }
+
+  /**
+   * Displays the victory message and restarts.
+   */
+  function winGame() {
+    gameRunning = false;
+    showMessageBox("You Win!", `Congratulations! You broke all the bricks!`, true);
+  }
+
+  /**
+   * Main game loop.
+   */
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBricks();
+    drawBall();
+    drawPaddle();
+    update();
+
+    if (gameRunning) {
+      frameId = requestAnimationFrame(draw);
+    }
+  }
+
+  /**
+   * Displays a custom message box.
+   */
+  function showMessageBox(title, text, showRestartButton = false) {
+      messageBoxTitle.textContent = title;
+      messageBoxText.textContent = text;
+      messageBoxButtons.innerHTML = '';
+
+      if (showRestartButton) {
+          const restartButton = document.createElement('button');
+          restartButton.className = 'button-86';
+          restartButton.textContent = 'Play Again';
+          restartButton.onclick = startGame;
+          messageBoxButtons.appendChild(restartButton);
+      } else {
+          const okButton = document.createElement('button');
+          okButton.className = 'button-86';
+          okButton.textContent = 'OK';
+          okButton.onclick = hideMessageBox;
+          messageBoxButtons.appendChild(okButton);
+      }
+      messageBoxOverlay.style.display = 'flex';
+  }
+
+  /**
+   * Hides the custom message box.
+   */
+  function hideMessageBox() {
+      messageBoxOverlay.style.display = 'none';
+  }
+
+  // Event Listeners for mouse input
+  canvas.addEventListener('mousemove', e => {
+    if (gameRunning) {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const scaledMouseX = mouseX * (canvas.width / rect.width);
+      paddle.x = Math.max(0, Math.min(canvas.width - paddle.width, scaledMouseX - paddle.width / 2));
+    }
+  });
+
+  // Event Listeners for keyboard input
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Right' || e.key === 'ArrowRight') {
+      rightPressed = true;
+    } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
+      leftPressed = true;
+    }
+  });
+
+  document.addEventListener('keyup', e => {
+    if (e.key === 'Right' || e.key === 'ArrowRight') {
+      rightPressed = false;
+    } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
+      leftPressed = false;
+    }
+  });
+
+  // Event Listeners for touch input (for mobile)
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (gameRunning && e.touches.length > 0) {
+      const rect = canvas.getBoundingClientRect();
+      const touchX = e.touches[0].clientX - rect.left;
+      const scaledTouchX = touchX * (canvas.width / rect.width);
+      paddle.x = Math.max(0, Math.min(canvas.width - paddle.width, scaledTouchX - paddle.width / 2));
+    }
+  });
+
+  // Dark Mode Toggle Logic
+  modeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+  });
+
+  // Initialize the game
+  document.addEventListener('DOMContentLoaded', () => {
+    resizeCanvas();
+    showMessageBox("Welcome to Breakout", "Press 'Start Game' to begin! Use your mouse, arrow keys, or swipe on your mobile screen to move the paddle.", false);
+  });
+</script>
+</body>
+</html>

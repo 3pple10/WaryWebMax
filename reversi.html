@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaryWEB | Reversi Game</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+        --primary-dark: #0c0c0c;
+        --primary-light: #ffffff;
+        --accent-start: #00F0FF;
+        --accent-end: #FF00F6;
+        --transition-slow: 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        --transition-fast: 0.3s ease;
+        --section-spacing: 80px;
+    }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        font-family: 'Inter', sans-serif;
+        color: var(--primary-dark);
+        background-color: var(--primary-light);
+        overflow-x: hidden;
+        line-height: 1.6;
+        transition: background-color 0.5s ease;
+    }
+    body.dark-mode {
+        background-color: var(--primary-dark);
+        color: var(--primary-light);
+    }
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+    }
+    .container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 0 40px;
+    }
+    /* Navigation */
+    nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 40px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        transition: var(--transition-fast);
+    }
+    body.dark-mode nav {
+        background: rgba(12, 12, 12, 0.8);
+    }
+    .logo {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 28px;
+        position: relative;
+        cursor: pointer;
+    }
+    .logo-morph {
+        display: inline-block;
+        transition: var(--transition-slow);
+    }
+    .nav-links {
+        display: flex;
+        gap: 40px;
+    }
+    .nav-link {
+        text-decoration: none;
+        color: inherit;
+        font-weight: 500;
+        position: relative;
+        padding: 8px 0;
+        overflow: hidden;
+    }
+    .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        transform: translateX(-100%);
+        transition: transform 0.4s ease;
+    }
+    .nav-link:hover::after {
+        transform: translateX(0);
+    }
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    .mode-toggle {
+        width: 50px;
+        height: 24px;
+        background: #e0e0e0;
+        border-radius: 12px;
+        position: relative;
+        cursor: pointer;
+        transition: var(--transition-fast);
+    }
+    body.dark-mode .mode-toggle {
+        background: #333;
+    }
+    .toggle-thumb {
+        width: 20px;
+        height: 20px;
+        background: var(--primary-light);
+        border-radius: 50%;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.3s ease;
+    }
+    body.dark-mode .toggle-thumb {
+        transform: translateX(26px);
+        background: var(--primary-dark);
+    }
+    /* Main Section */
+    .game-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: var(--section-spacing) 0;
+        padding-top: 120px;
+    }
+    .section-title {
+        font-size: 3.5rem;
+        margin-bottom: 60px;
+        text-align: center;
+        position: relative;
+    }
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        border-radius: 2px;
+    }
+    /* Button CSS */
+    .button-86 {
+        all: unset;
+        width: 100%;
+        max-width: 250px;
+        height: 50px;
+        font-size: 1.2rem;
+        background: transparent;
+        border: none;
+        position: relative;
+        color: #f0f0f0;
+        cursor: pointer;
+        z-index: 1;
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        text-decoration: none;
+        gap: 10px;
+        border-radius: 10px;
+    }
+    .button-86::after,
+    .button-86::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        z-index: -99999;
+        transition: all .4s;
+    }
+    .button-86::before {
+        transform: translate(0%, 0%);
+        width: 100%;
+        height: 100%;
+        background: #28282d;
+        border-radius: 10px;
+    }
+    body.dark-mode .button-86::before {
+        background: #1a1a1e;
+    }
+    .button-86::after {
+        transform: translate(10px, 10px);
+        width: 35px;
+        height: 35px;
+        background: #ffffff15;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        border-radius: 50px;
+    }
+    .button-86:hover::before {
+        transform: translate(5%, 20%);
+        width: 110%;
+        height: 110%;
+    }
+    .button-86:hover::after {
+        border-radius: 10px;
+        transform: translate(0, 0);
+        width: 100%;
+        height: 100%;
+    }
+    .button-86:active::after {
+        transition: 0s;
+        transform: translate(0, 5%);
+    }
+    /* Light Mode button adjustments */
+    body:not(.dark-mode) .button-86 {
+        color: var(--primary-dark);
+    }
+    body:not(.dark-mode) .button-86::before {
+        background: #e0e0e0;
+    }
+    body:not(.dark-mode) .button-86::after {
+        background: #00000015;
+    }
+    .button-86.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    /* Reversi Game Specific Styles */
+    .game-area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+        width: 100%;
+        max-width: 900px;
+    }
+    #reversi-board {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        grid-template-rows: repeat(8, 1fr);
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        background-color: #0d8050; /* Dark green board color */
+        border: 4px solid #333;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        border-radius: 10px;
+    }
+    body.dark-mode #reversi-board {
+        background-color: #0c4d32;
+        border: 4px solid #eee;
+    }
+    .cell {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid rgba(0,0,0,0.1);
+        position: relative;
+    }
+    body.dark-mode .cell {
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .cell.valid-move::after {
+      content: '';
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.4);
+      animation: pulse 1s infinite;
+    }
+    .cell.valid-move:hover {
+      background-color: rgba(0,0,0,0.2);
+    }
+    .cell.hint-move::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 0, 0.7); /* Yellow for hint */
+      box-shadow: 0 0 10px 5px rgba(255, 255, 0, 0.5);
+      animation: pulse-hint 1.5s infinite;
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.4); }
+        100% { transform: scale(1); }
+    }
+    @keyframes pulse-hint {
+        0% { transform: scale(0.8); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(0.8); }
+    }
+    .disk {
+        width: 80%;
+        height: 80%;
+        border-radius: 50%;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        transition: transform 0.3s ease-in-out;
+        transform: scale(0);
+    }
+    .disk.black {
+        background-color: #000;
+        border: 2px solid #555;
+    }
+    .disk.white {
+        background-color: #fff;
+        border: 2px solid #aaa;
+    }
+    .disk.scale-in {
+        animation: scale-in-anim 0.3s ease-in-out forwards;
+    }
+    .disk.flip-to-white {
+        animation: flip-white 0.5s forwards;
+    }
+    .disk.flip-to-black {
+        animation: flip-black 0.5s forwards;
+    }
+    @keyframes scale-in-anim {
+      from { transform: scale(0); }
+      to { transform: scale(1); }
+    }
+    @keyframes flip-white {
+      0% { transform: rotateY(0deg); background-color: #000; }
+      100% { transform: rotateY(180deg); background-color: #fff; }
+    }
+    @keyframes flip-black {
+      0% { transform: rotateY(0deg); background-color: #fff; }
+      100% { transform: rotateY(180deg); background-color: #000; }
+    }
+    .game-info {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 800px;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin-top: 20px;
+    }
+    .score-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .score-disk {
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      border: 2px solid;
+    }
+    .score-disk.black { border-color: #555; background-color: #000; }
+    .score-disk.white { border-color: #aaa; background-color: #fff; }
+    .status-message {
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .message-box-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    }
+    .message-box {
+        background: var(--primary-dark);
+        color: var(--primary-light);
+        padding: 2rem;
+        border-radius: 1rem;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        max-width: 400px;
+        width: 90%;
+    }
+    .message-box h3 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    .message-box p {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+    .message-box .button-86 {
+        max-width: 200px;
+        font-size: 1rem;
+    }
+    @media (max-width: 768px) {
+        .container {
+            padding: 0 20px;
+        }
+        nav {
+            padding: 16px 20px;
+        }
+        .logo {
+            font-size: 24px;
+        }
+        .nav-links {
+            display: none;
+        }
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+        }
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="logo">
+    <span class="logo-morph">WaryWEB</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Games</a>
+    <a href="index.html" class="nav-link">Utilities</a>
+    <a href="index.html" class="nav-link">About</a>
+    <a href="index.html" class="nav-link">Contact</a>
+  </div>
+  <div class="nav-actions">
+    <div class="mode-toggle" id="modeToggle">
+      <div class="toggle-thumb"></div>
+    </div>
+  </div>
+</nav>
+
+<section id="reversi-game-section" class="game-container">
+  <div class="container game-area">
+    <h2 class="section-title">Reversi</h2>
+
+    <!-- Game Board and UI -->
+    <div id="reversi-board"></div>
+
+    <div class="game-info">
+      <div class="score-box">
+        <div class="score-disk black"></div>
+        <span id="black-score">2</span>
+      </div>
+      <div class="score-box">
+        <div class="score-disk white"></div>
+        <span id="white-score">2</span>
+      </div>
+    </div>
+    <div class="status-message" id="status-message"></div>
+
+    <div class="game-controls flex justify-center gap-4 mt-6">
+      <button id="player-vs-player" class="button-86">Player vs Player</button>
+      <button id="player-vs-ai" class="button-86">Player vs AI</button>
+      <button id="hint-button" class="button-86 hidden">Show AI Hint</button>
+      <button id="restart-button" class="button-86 hidden">Restart</button>
+    </div>
+  </div>
+</section>
+
+<!-- Message Box Overlay -->
+<div id="message-box-overlay" class="message-box-overlay">
+  <div id="message-box" class="message-box">
+    <h3 id="message-box-title"></h3>
+    <p id="message-box-text"></p>
+    <div id="message-box-buttons" class="flex justify-center gap-4"></div>
+  </div>
+</div>
+
+<script>
+  // --- REVERSI Game Logic and UI Management ---
+
+  // Game state variables
+  const BOARD_SIZE = 8;
+  const BLACK = 1;
+  const WHITE = 2;
+  const EMPTY = 0;
+  let board = [];
+  let currentPlayer;
+  let gameRunning = false;
+  let validMoves = {};
+  let gameMode; // 'player-vs-player' or 'player-vs-ai'
+  const AI_THINKING_TIME = 1000; // 1 second delay for AI
+
+  // DOM elements
+  const boardEl = document.getElementById('reversi-board');
+  const blackScoreEl = document.getElementById('black-score');
+  const whiteScoreEl = document.getElementById('white-score');
+  const statusMessageEl = document.getElementById('status-message');
+  const playerVsPlayerBtn = document.getElementById('player-vs-player');
+  const playerVsAiBtn = document.getElementById('player-vs-ai');
+  const hintBtn = document.getElementById('hint-button');
+  const restartBtn = document.getElementById('restart-button');
+  const messageBoxOverlay = document.getElementById('message-box-overlay');
+  const messageBoxTitle = document.getElementById('message-box-title');
+  const messageBoxText = document.getElementById('message-box-text');
+  const messageBoxButtons = document.getElementById('message-box-buttons');
+  const modeToggle = document.getElementById('modeToggle');
+
+  // Directions for checking valid moves
+  const DIRECTIONS = [
+    { dx: -1, dy: -1 }, { dx: 0, dy: -1 }, { dx: 1, dy: -1 },
+    { dx: -1, dy: 0 }, { dx: 1, dy: 0 },
+    { dx: -1, dy: 1 }, { dx: 0, dy: 1 }, { dx: 1, dy: 1 }
+  ];
+
+  /**
+   * Initializes the game board and state.
+   */
+  function initGame(mode) {
+    gameMode = mode;
+    gameRunning = true;
+    currentPlayer = BLACK;
+    board = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(EMPTY));
+
+    // Place starting discs
+    board[3][3] = WHITE;
+    board[3][4] = BLACK;
+    board[4][3] = BLACK;
+    board[4][4] = WHITE;
+
+    // Show initial game state
+    updateUI();
+    updateValidMoves();
+    statusMessageEl.textContent = "Game started. Black's Turn.";
+
+    // Manage button visibility
+    playerVsPlayerBtn.classList.add('hidden');
+    playerVsAiBtn.classList.add('hidden');
+    restartBtn.classList.remove('hidden');
+    if (gameMode === 'player-vs-ai') {
+        hintBtn.classList.remove('hidden');
+    } else {
+        hintBtn.classList.add('hidden');
+    }
+  }
+
+  /**
+   * Updates the visual representation of the board and scores.
+   */
+  function updateUI() {
+    boardEl.innerHTML = '';
+    let blackScore = 0;
+    let whiteScore = 0;
+
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.dataset.row = r;
+        cell.dataset.col = c;
+        cell.addEventListener('click', handleCellClick);
+
+        const cellValue = board[r][c];
+        if (cellValue !== EMPTY) {
+          const disk = document.createElement('div');
+          disk.className = `disk ${cellValue === BLACK ? 'black' : 'white'}`;
+          disk.classList.add('scale-in');
+          cell.appendChild(disk);
+        }
+
+        boardEl.appendChild(cell);
+
+        if (cellValue === BLACK) blackScore++;
+        if (cellValue === WHITE) whiteScore++;
+      }
+    }
+
+    blackScoreEl.textContent = blackScore;
+    whiteScoreEl.textContent = whiteScore;
+
+    highlightValidMoves();
+  }
+
+  /**
+   * Handles a click on a cell, attempting to make a move.
+   * @param {Event} event The click event.
+   */
+  function handleCellClick(event) {
+    if (!gameRunning || (gameMode === 'player-vs-ai' && currentPlayer === WHITE)) {
+      return;
+    }
+
+    // Find the actual cell element, as the click target might be the disk
+    let targetCell = event.target;
+    while (targetCell && !targetCell.classList.contains('cell')) {
+      targetCell = targetCell.parentElement;
+    }
+    if (!targetCell) return;
+
+    const r = parseInt(targetCell.dataset.row);
+    const c = parseInt(targetCell.dataset.col);
+
+    if (isValidMove(r, c)) {
+      makeMove(r, c);
+      switchPlayer();
+    } else {
+      statusMessageEl.textContent = "Invalid Move! Try again.";
+      setTimeout(() => {
+        statusMessageEl.textContent = `${currentPlayer === BLACK ? "Black's" : "White's"} Turn`;
+      }, 1000);
+    }
+  }
+
+  /**
+   * Checks if a move at a given row and column is valid.
+   * @param {number} r The row index.
+   * @param {number} c The column index.
+   * @returns {boolean} True if the move is valid, false otherwise.
+   */
+  function isValidMove(r, c) {
+    return validMoves[`${r},${c}`] && board[r][c] === EMPTY;
+  }
+
+  /**
+   * Executes a move by placing a disc and flipping opponent's discs.
+   * @param {number} r The row index.
+   * @param {number} c The column index.
+   */
+  function makeMove(r, c) {
+    const opponent = currentPlayer === BLACK ? WHITE : BLACK;
+    const flippedDiscs = [];
+
+    DIRECTIONS.forEach(dir => {
+      let tempFlipped = [];
+      let row = r + dir.dy;
+      let col = c + dir.dx;
+
+      while (row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE && board[row][col] === opponent) {
+        tempFlipped.push({ r: row, c: col });
+        row += dir.dy;
+        col += dir.dx;
+      }
+
+      if (row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE && board[row][col] === currentPlayer) {
+        flippedDiscs.push(...tempFlipped);
+      }
+    });
+
+    if (flippedDiscs.length > 0) {
+      board[r][c] = currentPlayer;
+      flippedDiscs.forEach(pos => {
+        // Find the specific disk element to apply the animation
+        const diskEl = boardEl.querySelector(`.cell[data-row='${pos.r}'][data-col='${pos.c}'] .disk`);
+        diskEl.classList.add(`flip-to-${currentPlayer === BLACK ? 'black' : 'white'}`);
+        board[pos.r][pos.c] = currentPlayer;
+      });
+    }
+
+    updateUI();
+  }
+
+  /**
+   * Finds all valid moves for the current player and stores them.
+   */
+  function updateValidMoves() {
+    validMoves = {};
+    const opponent = currentPlayer === BLACK ? WHITE : BLACK;
+    let hasMoves = false;
+
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        if (board[r][c] === EMPTY) {
+          DIRECTIONS.forEach(dir => {
+            let row = r + dir.dy;
+            let col = c + dir.dx;
+            let hasOpponent = false;
+
+            while (row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE && board[row][col] === opponent) {
+              hasOpponent = true;
+              row += dir.dy;
+              col += dir.dx;
+            }
+
+            if (hasOpponent && row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE && board[row][col] === currentPlayer) {
+              validMoves[`${r},${c}`] = true;
+              hasMoves = true;
+            }
+          });
+        }
+      }
+    }
+    return hasMoves;
+  }
+
+  /**
+   * Adds a visual highlight to all valid moves on the board.
+   */
+  function highlightValidMoves() {
+    const cells = document.querySelectorAll('.cell');
+    cells.forEach(cell => {
+      const r = parseInt(cell.dataset.row);
+      const c = parseInt(cell.dataset.col);
+      if (validMoves[`${r},${c}`]) {
+        cell.classList.add('valid-move');
+      } else {
+        cell.classList.remove('valid-move');
+        cell.classList.remove('hint-move'); // Also remove hint class
+      }
+    });
+  }
+
+  /**
+   * Switches the current player and checks for game end conditions.
+   */
+  function switchPlayer() {
+    // Hide hint if a move was just made
+    hintBtn.classList.add('hidden');
+
+    currentPlayer = currentPlayer === BLACK ? WHITE : BLACK;
+
+    if (updateValidMoves()) {
+      updateUI();
+      statusMessageEl.textContent = `${currentPlayer === BLACK ? "Black's" : "White's"} Turn`;
+      if (gameMode === 'player-vs-ai' && currentPlayer === WHITE) {
+        aiMove();
+      }
+    } else {
+      // Current player has no moves, try to pass the turn back to the other player
+      statusMessageEl.textContent = `${currentPlayer === BLACK ? "Black" : "White"} has no valid moves. Passing turn.`;
+
+      currentPlayer = currentPlayer === BLACK ? WHITE : BLACK;
+      if (updateValidMoves()) {
+        setTimeout(() => {
+          updateUI();
+          statusMessageEl.textContent = `${currentPlayer === BLACK ? "Black's" : "White's"} Turn`;
+          if (gameMode === 'player-vs-ai' && currentPlayer === WHITE) {
+            aiMove();
+          } else if (gameMode === 'player-vs-ai' && currentPlayer === BLACK) {
+            hintBtn.classList.remove('hidden');
+          }
+        }, AI_THINKING_TIME);
+      } else {
+        // No moves for either player, game over
+        endGame();
+      }
+    }
+
+    // Show hint button for player vs AI
+    if (gameMode === 'player-vs-ai' && currentPlayer === BLACK) {
+        hintBtn.classList.remove('hidden');
+    }
+  }
+
+  /**
+   * The AI opponent's logic.
+   * Simple heuristic: find the move that flips the most discs.
+   */
+  function aiMove() {
+      statusMessageEl.textContent = "AI is thinking...";
+
+      setTimeout(() => {
+          const bestMove = findBestMove();
+
+          if (bestMove) {
+              makeMove(bestMove.r, bestMove.c);
+              switchPlayer();
+          } else {
+              switchPlayer();
+          }
+      }, AI_THINKING_TIME);
+  }
+
+  /**
+   * Finds the best possible move for the current player using a simple heuristic.
+   * @returns {{r: number, c: number} | null} The best move or null if no moves are available.
+   */
+  function findBestMove() {
+      let bestMove = null;
+      let maxFlips = -1;
+      const opponent = currentPlayer === BLACK ? WHITE : BLACK;
+
+      for (const move in validMoves) {
+          const [r, c] = move.split(',').map(Number);
+
+          let currentFlips = 0;
+          DIRECTIONS.forEach(dir => {
+              let tempFlipped = [];
+              let row = r + dir.dy;
+              let col = c + dir.dx;
+
+              while (row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE && board[row][col] === opponent) {
+                  tempFlipped.push({ r: row, c: col });
+                  row += dir.dy;
+                  col += dir.dx;
+              }
+
+              if (row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE && board[row][col] === currentPlayer) {
+                  currentFlips += tempFlipped.length;
+              }
+          });
+
+          if (currentFlips > maxFlips) {
+              maxFlips = currentFlips;
+              bestMove = { r, c };
+          }
+      }
+      return bestMove;
+  }
+
+  /**
+   * Shows a hint for the best move for the current player.
+   */
+  function showHint() {
+      const bestMove = findBestMove();
+      if (bestMove) {
+          const cells = document.querySelectorAll('.cell');
+          cells.forEach(cell => cell.classList.remove('hint-move'));
+
+          const hintCell = boardEl.querySelector(`.cell[data-row='${bestMove.r}'][data-col='${bestMove.c}']`);
+          if (hintCell) {
+              hintCell.classList.add('hint-move');
+          }
+      }
+  }
+
+  /**
+   * Ends the game and displays the winner.
+   */
+  function endGame() {
+    gameRunning = false;
+    hintBtn.classList.add('hidden'); // Hide hint button on game over
+    const blackScore = parseInt(blackScoreEl.textContent);
+    const whiteScore = parseInt(whiteScoreEl.textContent);
+    let winnerMessage;
+
+    if (blackScore > whiteScore) {
+      winnerMessage = `Black wins! Black: ${blackScore}, White: ${whiteScore}`;
+    } else if (whiteScore > blackScore) {
+      winnerMessage = `White wins! Black: ${blackScore}, White: ${whiteScore}`;
+    } else {
+      winnerMessage = `It's a draw! Black: ${blackScore}, White: ${whiteScore}`;
+    }
+
+    showMessageBox("Game Over", winnerMessage, true);
+  }
+
+  /**
+   * Displays a custom message box.
+   */
+  function showMessageBox(title, text, showRestartButton = false) {
+      messageBoxTitle.textContent = title;
+      messageBoxText.textContent = text;
+      messageBoxButtons.innerHTML = '';
+
+      if (showRestartButton) {
+          const restartButton = document.createElement('button');
+          restartButton.className = 'button-86';
+          restartButton.textContent = 'Play Again';
+          restartButton.onclick = () => {
+              hideMessageBox();
+              resetGame();
+          };
+          messageBoxButtons.appendChild(restartButton);
+      } else {
+          const okButton = document.createElement('button');
+          okButton.className = 'button-86';
+          okButton.textContent = 'OK';
+          okButton.onclick = hideMessageBox;
+          messageBoxButtons.appendChild(okButton);
+      }
+      messageBoxOverlay.style.display = 'flex';
+  }
+
+  /**
+   * Hides the custom message box.
+   */
+  function hideMessageBox() {
+      messageBoxOverlay.style.display = 'none';
+  }
+
+  /**
+   * Resets the game to the initial mode selection state.
+   */
+  function resetGame() {
+    gameRunning = false;
+    boardEl.innerHTML = '';
+    blackScoreEl.textContent = '2';
+    whiteScoreEl.textContent = '2';
+    statusMessageEl.textContent = '';
+
+    playerVsPlayerBtn.classList.remove('hidden');
+    playerVsAiBtn.classList.remove('hidden');
+    restartBtn.classList.add('hidden');
+    hintBtn.classList.add('hidden');
+  }
+
+  // Event Listeners
+  playerVsPlayerBtn.addEventListener('click', () => initGame('player-vs-player'));
+  playerVsAiBtn.addEventListener('click', () => initGame('player-vs-ai'));
+  restartBtn.addEventListener('click', resetGame);
+  hintBtn.addEventListener('click', showHint);
+  modeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+  });
+
+  // Initial setup
+  document.addEventListener('DOMContentLoaded', () => {
+    resetGame();
+  });
+</script>
+</body>
+</html>

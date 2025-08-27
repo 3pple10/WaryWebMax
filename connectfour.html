@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaryWEB | Connect Four</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-dark: #0c0c0c;
+      --primary-light: #ffffff;
+      --accent-red: #FF4136;
+      --accent-yellow: #FFDC00;
+      --transition-slow: 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+      --transition-fast: 0.3s ease;
+      --section-spacing: 80px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--primary-dark);
+      background-color: var(--primary-light);
+      overflow-x: hidden;
+      line-height: 1.6;
+      transition: background-color 0.5s ease;
+    }
+
+    body.dark-mode {
+      background-color: var(--primary-dark);
+      color: var(--primary-light);
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+
+    /* Navigation */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 40px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      transition: var(--transition-fast);
+    }
+
+    body.dark-mode nav {
+      background: rgba(12, 12, 12, 0.8);
+    }
+
+    .logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      position: relative;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .logo-morph {
+      display: inline-block;
+      transition: var(--transition-slow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 40px;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: inherit;
+      font-weight: 500;
+      position: relative;
+      padding: 8px 0;
+      overflow: hidden;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent-red), var(--accent-yellow));
+      transform: translateX(-100%);
+      transition: transform 0.4s ease;
+    }
+
+    .nav-link:hover::after {
+      transform: translateX(0);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .mode-toggle {
+      width: 50px;
+      height: 24px;
+      background: #e0e0e0;
+      border-radius: 12px;
+      position: relative;
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+
+    body.dark-mode .mode-toggle {
+      background: #333;
+    }
+
+    .toggle-thumb {
+      width: 20px;
+      height: 20px;
+      background: var(--primary-light);
+      border-radius: 50%;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.3s ease;
+    }
+
+    body.dark-mode .toggle-thumb {
+      transform: translateX(26px);
+      background: var(--primary-dark);
+    }
+
+    /* Main Section */
+    .section-title {
+      font-size: 3.5rem;
+      margin-bottom: 60px;
+      text-align: center;
+      position: relative;
+    }
+
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-red), var(--accent-yellow));
+      border-radius: 2px;
+    }
+
+    .connect-four-game {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: var(--section-spacing) 0;
+      padding-top: 120px;
+    }
+
+    /* Connect Four Game Container */
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      max-width: 1000px;
+      width: 100%;
+    }
+
+    #game-status {
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    #message-box {
+      background-color: #333;
+      color: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      z-index: 10000;
+      display: none;
+    }
+
+    #message-box button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      background: linear-gradient(90deg, var(--accent-red), var(--accent-yellow));
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    /* Connect Four Board */
+    #game-board {
+      display: grid;
+      position: relative;
+      background-color: rgba(0, 0, 255, 0.8);
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(0, 0, 255, 0.2);
+    }
+
+    .board-cell {
+      width: clamp(30px, 8vw, 70px);
+      height: clamp(30px, 8vw, 70px);
+      background-color: #fff;
+      border-radius: 50%;
+      margin: 5px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .board-cell.red {
+      background-color: var(--accent-red);
+    }
+
+    .board-cell.yellow {
+      background-color: var(--accent-yellow);
+    }
+
+    .board-cell.highlight {
+      border: 3px solid #00ff00;
+    }
+
+    /* Game controls */
+    .game-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      margin-top: 20px;
+      width: 100%;
+    }
+
+    .game-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* Old button styles */
+    .button-86 {
+        all: unset;
+        width: 100%;
+        max-width: 250px;
+        height: 50px;
+        font-size: 1.2rem;
+        background: transparent;
+        border: none;
+        position: relative;
+        color: #f0f0f0;
+        cursor: pointer;
+        z-index: 1;
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        text-decoration: none;
+        gap: 10px;
+        border-radius: 10px;
+    }
+
+    .button-86::after,
+    .button-86::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        z-index: -99999;
+        transition: all .4s;
+    }
+
+    .button-86::before {
+        transform: translate(0%, 0%);
+        width: 100%;
+        height: 100%;
+        background: #28282d;
+        border-radius: 10px;
+    }
+
+    body.dark-mode .button-86::before {
+        background: #1a1a1e;
+    }
+
+    .button-86::after {
+        transform: translate(10px, 10px);
+        width: 35px;
+        height: 35px;
+        background: #ffffff15;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        border-radius: 50px;
+    }
+
+    .button-86:hover::before {
+        transform: translate(5%, 20%);
+        width: 110%;
+        height: 110%;
+    }
+
+    .button-86:hover::after {
+        border-radius: 10px;
+        transform: translate(0, 0);
+        width: 100%;
+        height: 100%;
+    }
+
+    .button-86:active::after {
+        transition: 0s;
+        transform: translate(0, 5%);
+    }
+
+    /* Light Mode button adjustments */
+    body:not(.dark-mode) .button-86 {
+        color: var(--primary-dark);
+    }
+
+    body:not(.dark-mode) .button-86::before {
+        background: #e0e0e0;
+    }
+
+    body:not(.dark-mode) .button-86::after {
+        background: #00000015;
+    }
+
+    /* New Button Styles */
+    .mode-select-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mode-row {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .button-54 {
+      font-family: "Open Sans", sans-serif;
+      font-size: 16px;
+      letter-spacing: 2px;
+      text-decoration: none;
+      text-transform: uppercase;
+      color: #000;
+      cursor: pointer;
+      border: 3px solid;
+      padding: 0.25em 0.5em;
+      box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px;
+      position: relative;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      background-color: transparent;
+    }
+
+    body.dark-mode .button-54 {
+      color: #fff;
+      border-color: #fff;
+      box-shadow: 1px 1px 0px 0px #fff, 2px 2px 0px 0px #fff, 3px 3px 0px 0px #fff, 4px 4px 0px 0px #fff, 5px 5px 0px 0px #fff;
+    }
+
+    .button-54:active {
+      box-shadow: 0px 0px 0px 0px;
+      top: 5px;
+      left: 5px;
+    }
+
+    @media (min-width: 768px) {
+      .button-54 {
+        padding: 0.25em 0.75em;
+      }
+    }
+
+    /* Responsive button styling */
+    @media (max-width: 768px) {
+      .mode-row {
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="logo">
+    <span class="logo-morph">WaryWEB</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Games</a>
+    <a href="index.html" class="nav-link">Utilities</a>
+    <a href="index.html" class="nav-link">About</a>
+    <a href="index.html" class="nav-link">Contact</a>
+  </div>
+  <div class="nav-actions">
+    <div class="mode-toggle" id="modeToggle">
+      <div class="toggle-thumb"></div>
+    </div>
+  </div>
+</nav>
+
+<section id="connect-four-game" class="connect-four-game">
+  <div class="container">
+    <h2 class="section-title">Connect Four</h2>
+    <div class="game-container">
+      <div id="game-status"></div>
+      <div id="game-board"></div>
+      <div class="game-controls">
+        <div class="mode-select-buttons">
+          <div class="mode-row">
+            <button class="button-54" role="button" data-mode="2-player">Player vs Player</button>
+            <button class="button-54" role="button" data-mode="normal-bot">Player vs Normal Bot</button>
+          </div>
+          <div class="mode-row">
+            <button class="button-54" role="button" data-mode="hard-bot">Player vs Unbeatable Bot</button>
+            <button class="button-54" role="button" id="reset-button">Clear Board</button>
+          </div>
+        </div>
+        <div class="game-buttons">
+          <a href="index.html" class="button-86">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Back to Home
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Custom Message Box -->
+<div id="message-box">
+  <p id="message-content"></p>
+  <button id="close-message">OK</button>
+</div>
+
+<script>
+  // DOM Elements
+  const modeToggle = document.getElementById('modeToggle');
+  const gameBoard = document.getElementById('game-board');
+  const gameStatus = document.getElementById('game-status');
+  const resetButton = document.getElementById('reset-button');
+  const messageBox = document.getElementById('message-box');
+  const messageContent = document.getElementById('message-content');
+  const closeMessageButton = document.getElementById('close-message');
+  const modeButtons = document.querySelectorAll('.button-54');
+
+  // Game State
+  let currentPlayer;
+  let gameActive = true;
+  const rows = 6;
+  const cols = 7;
+  let boardState;
+  let isBotGame;
+  let botDifficulty;
+  let currentMode = '2-player'; // Default mode
+
+  // Dark Mode Toggle
+  modeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+  });
+
+  // Message Box
+  const showMessage = (message) => {
+    messageContent.textContent = message;
+    messageBox.style.display = 'block';
+  };
+
+  closeMessageButton.addEventListener('click', () => {
+    messageBox.style.display = 'none';
+  });
+
+  // Game Initialization
+  const initGame = (mode) => {
+    currentMode = mode;
+    gameBoard.innerHTML = '';
+
+    isBotGame = mode !== '2-player';
+    botDifficulty = isBotGame ? mode : null;
+
+    currentPlayer = 'red';
+    gameActive = true;
+    boardState = Array(rows).fill(null).map(() => Array(cols).fill(null));
+    gameStatus.textContent = `Player ${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)}'s turn`;
+
+    // Set up board grid
+    gameBoard.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    gameBoard.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+    // Create cells
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const cell = document.createElement('div');
+        cell.classList.add('board-cell');
+        cell.dataset.row = r;
+        cell.dataset.col = c;
+        cell.addEventListener('click', () => handleCellClick(c));
+        gameBoard.appendChild(cell);
+      }
+    }
+  };
+
+  const handleCellClick = (col) => {
+    if (!gameActive) return;
+
+    // Find the next available row in the selected column
+    let row = -1;
+    for (let r = rows - 1; r >= 0; r--) {
+      if (boardState[r][col] === null) {
+        row = r;
+        break;
+      }
+    }
+
+    if (row !== -1) {
+      makeMove(row, col, currentPlayer);
+    }
+  };
+
+  const makeMove = (row, col, player) => {
+    boardState[row][col] = player;
+    const cellElement = gameBoard.children[row * cols + col];
+    cellElement.classList.add(player);
+
+    const win = checkWin(row, col, player);
+    if (win) {
+      endGame(player);
+    } else if (checkDraw()) {
+      endGame('draw');
+    } else {
+      switchPlayer();
+      if (isBotGame && currentPlayer === 'yellow' && gameActive) {
+        setTimeout(makeBotMove, 500);
+      }
+    }
+  };
+
+  const switchPlayer = () => {
+    currentPlayer = currentPlayer === 'red' ? 'yellow' : 'red';
+    gameStatus.textContent = `Player ${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)}'s turn`;
+  };
+
+  const checkWin = (row, col, player) => {
+    // Check horizontal
+    let count = 0;
+    for (let c = 0; c < cols; c++) {
+      if (boardState[row][c] === player) {
+        count++;
+      } else {
+        count = 0;
+      }
+      if (count >= 4) return true;
+    }
+
+    // Check vertical
+    count = 0;
+    for (let r = 0; r < rows; r++) {
+      if (boardState[r][col] === player) {
+        count++;
+      } else {
+        count = 0;
+      }
+      if (count >= 4) return true;
+    }
+
+    // Check diagonal (top-left to bottom-right)
+    count = 0;
+    let startRow = row - Math.min(row, col);
+    let startCol = col - Math.min(row, col);
+    for (let r = startRow, c = startCol; r < rows && c < cols; r++, c++) {
+      if (boardState[r][c] === player) {
+        count++;
+      } else {
+        count = 0;
+      }
+      if (count >= 4) return true;
+    }
+
+    // Check diagonal (top-right to bottom-left)
+    count = 0;
+    startRow = row - Math.min(row, cols - 1 - col);
+    startCol = col + Math.min(row, cols - 1 - col);
+    for (let r = startRow, c = startCol; r < rows && c >= 0; r++, c--) {
+      if (boardState[r][c] === player) {
+        count++;
+      } else {
+        count = 0;
+      }
+      if (count >= 4) return true;
+    }
+
+    return false;
+  };
+
+  const checkDraw = () => {
+    return boardState.flat().every(cell => cell !== null);
+  };
+
+  const endGame = (result) => {
+    gameActive = false;
+    if (result === 'draw') {
+      gameStatus.textContent = `Game ended in a draw! 🤝`;
+      showMessage('Game ended in a draw! 🤝');
+    } else {
+      gameStatus.textContent = `Player ${result.charAt(0).toUpperCase() + result.slice(1)} has won! �`;
+      showMessage(`Player ${result.charAt(0).toUpperCase() + result.slice(1)} has won! 🎉`);
+    }
+  };
+
+  // Bot Logic
+  const getAvailableMoves = (board) => {
+    const moves = [];
+    for (let c = 0; c < cols; c++) {
+      if (board[0][c] === null) {
+        moves.push(c);
+      }
+    }
+    return moves;
+  };
+
+  const makeBotMove = () => {
+    let moveCol;
+    if (botDifficulty === 'hard-bot') {
+      moveCol = findBestMove(boardState, 'yellow', 'red');
+    } else {
+      moveCol = findNormalBotMove();
+    }
+
+    if (moveCol !== null) {
+      let row = -1;
+      for (let r = rows - 1; r >= 0; r--) {
+        if (boardState[r][moveCol] === null) {
+          row = r;
+          break;
+        }
+      }
+      if (row !== -1) {
+        makeMove(row, moveCol, 'yellow');
+      }
+    }
+  };
+
+  const findNormalBotMove = () => {
+    const availableMoves = getAvailableMoves(boardState);
+    if (availableMoves.length === 0) return null;
+
+    // Rule 1: Win
+    for (const col of availableMoves) {
+        const tempBoard = JSON.parse(JSON.stringify(boardState));
+        let row = -1;
+        for (let r = rows - 1; r >= 0; r--) {
+            if (tempBoard[r][col] === null) {
+                row = r;
+                break;
+            }
+        }
+        if (row !== -1) {
+            tempBoard[row][col] = 'yellow';
+            if (checkWin(row, col, 'yellow')) return col;
+        }
+    }
+
+    // Rule 2: Block
+    for (const col of availableMoves) {
+        const tempBoard = JSON.parse(JSON.stringify(boardState));
+        let row = -1;
+        for (let r = rows - 1; r >= 0; r--) {
+            if (tempBoard[r][col] === null) {
+                row = r;
+                break;
+            }
+        }
+        if (row !== -1) {
+            tempBoard[row][col] = 'red';
+            if (checkWin(row, col, 'red')) return col;
+        }
+    }
+
+    // Rule 3: Random move
+    const randomIndex = Math.floor(Math.random() * availableMoves.length);
+    return availableMoves[randomIndex];
+  };
+
+  // Minimax algorithm for unbeatable AI
+  const findBestMove = (board, player, opponent) => {
+    let bestScore = -Infinity;
+    let move = null;
+    const availableMoves = getAvailableMoves(board);
+
+    for (const col of availableMoves) {
+      const newBoard = JSON.parse(JSON.stringify(board));
+      let row = -1;
+      for (let r = rows - 1; r >= 0; r--) {
+        if (newBoard[r][col] === null) {
+          row = r;
+          break;
+        }
+      }
+      if (row !== -1) {
+        newBoard[row][col] = player;
+        let score = minimax(newBoard, 5, -Infinity, Infinity, false, player, opponent); // Depth 5 for performance
+        if (score > bestScore) {
+          bestScore = score;
+          move = col;
+        }
+      }
+    }
+    return move;
+  };
+
+  const minimax = (board, depth, alpha, beta, isMaximizing, player, opponent) => {
+    if (depth === 0 || checkWinOnBoard(board, player) || checkWinOnBoard(board, opponent) || checkDrawOnBoard(board)) {
+      if (checkWinOnBoard(board, player)) return 100000;
+      if (checkWinOnBoard(board, opponent)) return -100000;
+      return 0;
+    }
+
+    if (isMaximizing) {
+      let bestScore = -Infinity;
+      for (const col of getAvailableMoves(board)) {
+        const newBoard = JSON.parse(JSON.stringify(board));
+        let row = -1;
+        for (let r = rows - 1; r >= 0; r--) {
+          if (newBoard[r][col] === null) {
+            row = r;
+            break;
+          }
+        }
+        if (row !== -1) {
+          newBoard[row][col] = player;
+          let score = minimax(newBoard, depth - 1, alpha, beta, false, player, opponent);
+          bestScore = Math.max(bestScore, score);
+          alpha = Math.max(alpha, score);
+          if (beta <= alpha) break;
+        }
+      }
+      return bestScore;
+    } else {
+      let bestScore = Infinity;
+      for (const col of getAvailableMoves(board)) {
+        const newBoard = JSON.parse(JSON.stringify(board));
+        let row = -1;
+        for (let r = rows - 1; r >= 0; r--) {
+          if (newBoard[r][col] === null) {
+            row = r;
+            break;
+          }
+        }
+        if (row !== -1) {
+          newBoard[row][col] = opponent;
+          let score = minimax(newBoard, depth - 1, alpha, beta, true, player, opponent);
+          bestScore = Math.min(bestScore, score);
+          beta = Math.min(beta, score);
+          if (beta <= alpha) break;
+        }
+      }
+      return bestScore;
+    }
+  };
+
+  // Helper functions for minimax
+  const checkWinOnBoard = (board, player) => {
+    // Check horizontal, vertical, and diagonal wins on a given board state
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols - 3; c++) {
+        if (board[r][c] === player && board[r][c+1] === player && board[r][c+2] === player && board[r][c+3] === player) return true;
+      }
+    }
+    for (let r = 0; r < rows - 3; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (board[r][c] === player && board[r+1][c] === player && board[r+2][c] === player && board[r+3][c] === player) return true;
+      }
+    }
+    for (let r = 0; r < rows - 3; r++) {
+      for (let c = 0; c < cols - 3; c++) {
+        if (board[r][c] === player && board[r+1][c+1] === player && board[r+2][c+2] === player && board[r+3][c+3] === player) return true;
+      }
+    }
+    for (let r = 3; r < rows; r++) {
+      for (let c = 0; c < cols - 3; c++) {
+        if (board[r][c] === player && board[r-1][c+1] === player && board[r-2][c+2] === player && board[r-3][c+3] === player) return true;
+      }
+    }
+    return false;
+  };
+
+  const checkDrawOnBoard = (board) => {
+    for(let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (board[r][c] === null) return false;
+      }
+    }
+    return true;
+  };
+
+  // Event Listeners
+  resetButton.addEventListener('click', () => initGame(currentMode));
+
+  modeButtons.forEach(button => {
+    button.addEventListener('click', (event) => {
+      const mode = event.currentTarget.dataset.mode;
+      initGame(mode);
+    });
+  });
+
+  // Initial call
+  initGame(currentMode);
+</script>
+</body>
+</html>
+�

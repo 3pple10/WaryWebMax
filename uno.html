@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaryWEB | UNO Game</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+        --primary-dark: #0c0c0c;
+        --primary-light: #ffffff;
+        --accent-start: #00F0FF;
+        --accent-end: #FF00F6;
+        --transition-slow: 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        --transition-fast: 0.3s ease;
+        --section-spacing: 80px;
+    }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        font-family: 'Inter', sans-serif;
+        color: var(--primary-dark);
+        background-color: var(--primary-light);
+        overflow-x: hidden;
+        line-height: 1.6;
+        transition: background-color 0.5s ease;
+    }
+    body.dark-mode {
+        background-color: var(--primary-dark);
+        color: var(--primary-light);
+    }
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+    }
+    .container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 0 40px;
+    }
+    /* Navigation */
+    nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 40px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        transition: var(--transition-fast);
+    }
+    body.dark-mode nav {
+        background: rgba(12, 12, 12, 0.8);
+    }
+    .logo {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 28px;
+        position: relative;
+        cursor: pointer;
+    }
+    .logo-morph {
+        display: inline-block;
+        transition: var(--transition-slow);
+    }
+    .nav-links {
+        display: flex;
+        gap: 40px;
+    }
+    .nav-link {
+        text-decoration: none;
+        color: inherit;
+        font-weight: 500;
+        position: relative;
+        padding: 8px 0;
+        overflow: hidden;
+    }
+    .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        transform: translateX(-100%);
+        transition: transform 0.4s ease;
+    }
+    .nav-link:hover::after {
+        transform: translateX(0);
+    }
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    .mode-toggle {
+        width: 50px;
+        height: 24px;
+        background: #e0e0e0;
+        border-radius: 12px;
+        position: relative;
+        cursor: pointer;
+        transition: var(--transition-fast);
+    }
+    body.dark-mode .mode-toggle {
+        background: #333;
+    }
+    .toggle-thumb {
+        width: 20px;
+        height: 20px;
+        background: var(--primary-light);
+        border-radius: 50%;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.3s ease;
+    }
+    body.dark-mode .toggle-thumb {
+        transform: translateX(26px);
+        background: var(--primary-dark);
+    }
+    /* Main Section */
+    .game-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: var(--section-spacing) 0;
+        padding-top: 120px;
+    }
+    .section-title {
+        font-size: 3.5rem;
+        margin-bottom: 60px;
+        text-align: center;
+        position: relative;
+    }
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        border-radius: 2px;
+    }
+    /* Button CSS */
+    .button-86 {
+        all: unset;
+        width: 100%;
+        max-width: 250px;
+        height: 50px;
+        font-size: 1.2rem;
+        background: transparent;
+        border: none;
+        position: relative;
+        color: #f0f0f0;
+        cursor: pointer;
+        z-index: 1;
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        text-decoration: none;
+        gap: 10px;
+        border-radius: 10px;
+    }
+    .button-86::after,
+    .button-86::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        z-index: -99999;
+        transition: all .4s;
+    }
+    .button-86::before {
+        transform: translate(0%, 0%);
+        width: 100%;
+        height: 100%;
+        background: #28282d;
+        border-radius: 10px;
+    }
+    body.dark-mode .button-86::before {
+        background: #1a1a1e;
+    }
+    .button-86::after {
+        transform: translate(10px, 10px);
+        width: 35px;
+        height: 35px;
+        background: #ffffff15;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        border-radius: 50px;
+    }
+    .button-86:hover::before {
+        transform: translate(5%, 20%);
+        width: 110%;
+        height: 110%;
+    }
+    .button-86:hover::after {
+        border-radius: 10px;
+        transform: translate(0, 0);
+        width: 100%;
+        height: 100%;
+    }
+    .button-86:active::after {
+        transition: 0s;
+        transform: translate(0, 5%);
+    }
+    /* Light Mode button adjustments */
+    body:not(.dark-mode) .button-86 {
+        color: var(--primary-dark);
+    }
+    body:not(.dark-mode) .button-86::before {
+        background: #e0e0e0;
+    }
+    body:not(.dark-mode) .button-86::after {
+        background: #00000015;
+    }
+    .button-86.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    /* Game Specific Styles */
+    .game-area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+        width: 100%;
+        max-width: 900px;
+    }
+    .uno-board {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 2rem;
+        padding: 1rem;
+        min-height: 200px;
+    }
+    .card-pile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        text-align: center;
+        cursor: pointer;
+    }
+    .card-pile p {
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    .card {
+        width: 60px;
+        height: 90px;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 0.5rem;
+        border: 3px solid transparent;
+        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        position: relative;
+        flex-shrink: 0;
+    }
+    .card.back {
+        background-color: #f3f4f6;
+        background: linear-gradient(45deg, var(--accent-start), var(--accent-end));
+    }
+    .card.playable {
+        cursor: pointer;
+        animation: pulse 1s infinite;
+    }
+    .card.playable:hover {
+        transform: translateY(-8px);
+    }
+    .card.selected {
+        border-color: var(--accent-start);
+        box-shadow: 0 0 15px rgba(0, 240, 255, 0.8);
+        transform: translateY(-8px);
+    }
+    .card.red { background-color: #ef4444; }
+    .card.blue { background-color: #3b82f6; }
+    .card.green { background-color: #22c55e; }
+    .card.yellow { background-color: #f59e0b; }
+    .card.black { background-color: #1f2937; }
+    .card.white { background-color: #ffffff; color: #1f2937; }
+    .card-value {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 1.8rem;
+        color: #fff;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+    .card.white .card-value { color: #1f2937; }
+
+    .player-hand-container {
+        max-width: 100vw;
+        overflow-x: auto;
+        padding: 0 2rem; /* Adjusted for extra space on sides */
+    }
+    .player-hand-wrapper {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 0.5rem;
+        justify-content: center;
+        padding: 10px 0;
+    }
+
+    .player-hand-container::before,
+    .player-hand-container::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        height: 100%;
+        width: 5rem;
+        pointer-events: none;
+        z-index: 10;
+    }
+    .player-hand-container::before {
+        left: 0;
+        background: linear-gradient(to right, var(--primary-light), transparent);
+    }
+    .player-hand-container::after {
+        right: 0;
+        background: linear-gradient(to left, var(--primary-light), transparent);
+    }
+    body.dark-mode .player-hand-container::before {
+        background: linear-gradient(to right, var(--primary-dark), transparent);
+    }
+    body.dark-mode .player-hand-container::after {
+        right: 0;
+        background: linear-gradient(to left, var(--primary-dark), transparent);
+    }
+    .player-hand-container::-webkit-scrollbar {
+        height: 8px;
+    }
+    .player-hand-container::-webkit-scrollbar-thumb {
+        background-color: #ccc;
+        border-radius: 4px;
+    }
+    .player-hand-container::-webkit-scrollbar-track {
+        background-color: transparent;
+    }
+    .status-message {
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin: 1rem 0;
+    }
+    .message-box-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    }
+    .message-box {
+        background: var(--primary-dark);
+        color: var(--primary-light);
+        padding: 2rem;
+        border-radius: 1rem;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        max-width: 400px;
+        width: 90%;
+    }
+    .message-box h3 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    .message-box p {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+    .color-picker {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+    }
+    .color-picker-btn {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid var(--primary-light);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .color-picker-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+    .color-picker-btn.red { background-color: #ef4444; }
+    .color-picker-btn.blue { background-color: #3b82f6; }
+    .color-picker-btn.green { background-color: #22c55e; }
+    .color-picker-btn.yellow { background-color: #f59e0b; }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 5px rgba(0,240,255,0.4); }
+        50% { box-shadow: 0 0 15px rgba(0,240,255,0.8); }
+        100% { box-shadow: 0 0 5px rgba(0,240,255,0.4); }
+    }
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .container {
+            padding: 0 20px;
+        }
+        nav {
+            padding: 16px 20px;
+        }
+        .logo {
+            font-size: 24px;
+        }
+        .nav-links {
+            display: none;
+        }
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+        }
+        .game-controls .game-buttons {
+            flex-direction: row;
+            gap: 10px;
+        }
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="logo">
+    <span class="logo-morph">WaryWEB</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Games</a>
+    <a href="index.html" class="nav-link">Utilities</a>
+    <a href="index.html" class="nav-link">About</a>
+    <a href="index.html" class="nav-link">Contact</a>
+  </div>
+  <div class="nav-actions">
+    <div class="mode-toggle" id="modeToggle">
+      <div class="toggle-thumb"></div>
+    </div>
+  </div>
+</nav>
+
+<section id="uno-game-section" class="game-container">
+  <div class="container game-area">
+    <!-- Game Title -->
+    <h2 class="section-title">UNO</h2>
+
+    <!-- Game Status -->
+    <p id="status-message" class="status-message">Shuffling and dealing cards...</p>
+
+    <!-- Opponent Hand -->
+    <div class="flex flex-col items-center">
+      <h3 class="text-xl sm:text-2xl font-bold text-sky-400">Opponent Hand</h3>
+      <div id="opponent-hand" class="player-hand-wrapper">
+        <!-- Opponent's cards (hidden) -->
+      </div>
+    </div>
+
+    <!-- Game Area: Discard and Draw Piles -->
+    <div class="uno-board">
+      <div id="draw-pile" class="card-pile">
+        <div class="card back"></div>
+        <p>Draw Pile</p>
+      </div>
+      <div id="discard-pile" class="card-pile">
+        <div class="card card-back-placeholder"></div>
+        <p>Discard Pile</p>
+      </div>
+    </div>
+
+    <!-- Player Hand -->
+    <div class="flex flex-col items-center gap-2">
+      <h3 class="text-xl sm:text-2xl font-bold text-sky-400">Your Hand</h3>
+      <div id="player-hand-container" class="player-hand-container w-full">
+        <div id="player-hand" class="player-hand-wrapper">
+          <!-- Cards will be dynamically added here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="game-controls">
+      <div class="game-buttons flex gap-4">
+        <button id="draw-button" class="button-86" onclick="handleDrawClick()">Draw Card</button>
+        <button id="play-button" class="button-86" onclick="handlePlayClick()">Play Card</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Message Box Overlay for Alerts and Color Picker -->
+<div id="message-box-overlay" class="message-box-overlay">
+  <div id="message-box" class="message-box">
+    <h3 id="message-box-title"></h3>
+    <p id="message-box-text"></p>
+    <div id="message-box-buttons" class="flex justify-center gap-4"></div>
+  </div>
+</div>
+
+<script>
+  // --- UNO Game Logic and UI Management ---
+
+  // Game state
+  let deck = [];
+  let playerHand = [];
+  let opponentHand = [];
+  let discardPile = [];
+  let currentPlayer = 'player';
+  let selectedPlayerCardIndex = null;
+  let turnInProgress = false;
+
+  // Game elements
+  const statusMessageEl = document.getElementById('status-message');
+  const playerHandEl = document.getElementById('player-hand');
+  const opponentHandEl = document.getElementById('opponent-hand');
+  const discardPileEl = document.getElementById('discard-pile');
+  const playButtonEl = document.getElementById('play-button');
+  const drawButtonEl = document.getElementById('draw-button');
+  const messageBoxOverlay = document.getElementById('message-box-overlay');
+  const messageBoxTitle = document.getElementById('message-box-title');
+  const messageBoxText = document.getElementById('message-box-text');
+  const messageBoxButtons = document.getElementById('message-box-buttons');
+  const modeToggle = document.getElementById('modeToggle');
+
+  // Card data
+  const colors = ['red', 'blue', 'green', 'yellow'];
+  const numberValues = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+  const specialValues = ['skip', 'reverse', 'drawTwo'];
+  const wildValues = ['wild', 'wildDrawFour'];
+
+  // --- Core Game Functions ---
+
+  /**
+   * Initializes a new game.
+   */
+  function initializeGame() {
+      turnInProgress = false;
+      createDeck();
+      shuffleDeck();
+      dealInitialHands();
+      updateUI();
+      statusMessageEl.textContent = "Your turn! Play a card or draw.";
+      currentPlayer = 'player';
+  }
+
+  /**
+   * Creates a standard 108-card UNO deck.
+   */
+  function createDeck() {
+      deck = [];
+      // Number cards (0-9)
+      for (const color of colors) {
+          deck.push({ type: 'number', value: '0', color: color });
+          for (let i = 0; i < 2; i++) {
+              numberValues.slice(1).forEach(value => deck.push({ type: 'number', value: value, color: color }));
+          }
+      }
+      // Special cards (Skip, Reverse, Draw Two)
+      for (const color of colors) {
+          for (let i = 0; i < 2; i++) {
+              specialValues.forEach(value => deck.push({ type: 'special', value: value, color: color }));
+          }
+      }
+      // Wild cards
+      for (let i = 0; i < 4; i++) {
+          deck.push({ type: 'wild', value: 'wild', color: 'black' });
+          deck.push({ type: 'wild', value: 'wildDrawFour', color: 'black' });
+      }
+  }
+
+  /**
+   * Shuffles the deck using the Fisher-Yates algorithm.
+   */
+  function shuffleDeck() {
+      for (let i = deck.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+  }
+
+  /**
+   * Deals 7 cards to the player and 7 to the opponent.
+   * Sets the first card of the discard pile.
+   */
+  function dealInitialHands() {
+      playerHand = deck.splice(0, 7);
+      opponentHand = deck.splice(0, 7);
+      // Place a non-wild card on the discard pile to start
+      let initialCard = deck.shift();
+      while (initialCard.type === 'wild') {
+          deck.push(initialCard);
+          shuffleDeck();
+          initialCard = deck.shift();
+      }
+      discardPile.push(initialCard);
+  }
+
+  /**
+   * Draws a specified number of cards from the deck.
+   * If the deck is empty, it shuffles the discard pile back in.
+   * @param {number} count The number of cards to draw.
+   * @returns {Array} An array of the drawn cards.
+   */
+  function drawCards(count = 1) {
+      let drawn = [];
+      for (let i = 0; i < count; i++) {
+          if (deck.length === 0) {
+              const topCard = discardPile.pop();
+              deck = discardPile;
+              discardPile = [topCard];
+              shuffleDeck();
+          }
+          if (deck.length > 0) {
+              drawn.push(deck.shift());
+          }
+      }
+      return drawn;
+  }
+
+  /**
+   * Handles the "Draw Card" button click.
+   */
+  function handleDrawClick() {
+      if (currentPlayer !== 'player' || turnInProgress) return;
+      const topCard = discardPile[discardPile.length - 1];
+      const hasPlayable = playerHand.some(card => isPlayable(card, topCard));
+
+      if (hasPlayable) {
+          showMessageBox("Cannot Draw", "You have a playable card in your hand. You must play a card before drawing.");
+          return;
+      }
+
+      turnInProgress = true;
+      const drawnCards = drawCards(1);
+      playerHand.push(...drawnCards);
+      statusMessageEl.textContent = `You drew a card. Your turn is over.`;
+
+      updateUI();
+      if (playerHand.length === 1) {
+          statusMessageEl.textContent += " UNO!";
+      }
+
+      setTimeout(() => {
+          currentPlayer = 'opponent';
+          turnInProgress = false;
+          opponentTurn();
+      }, 1000);
+  }
+
+  /**
+   * Handles the "Play Card" button click.
+   */
+  function handlePlayClick() {
+      if (currentPlayer !== 'player' || turnInProgress) return;
+      if (selectedPlayerCardIndex === null) {
+          showMessageBox("Invalid Move", "Please select a card to play.");
+          return;
+      }
+
+      turnInProgress = true;
+      const cardToPlay = playerHand[selectedPlayerCardIndex];
+      const topCard = discardPile[discardPile.length - 1];
+
+      if (!isPlayable(cardToPlay, topCard)) {
+          showMessageBox("Invalid Card", "That card cannot be played. Please select a matching card or draw a new card.");
+          turnInProgress = false;
+          return;
+      }
+
+      if (cardToPlay.type === 'wild') {
+          showColorPicker(() => {
+              playSelectedCard(cardToPlay);
+          });
+      } else {
+          playSelectedCard(cardToPlay);
+      }
+  }
+
+  /**
+   * Performs the actual playing of a selected card.
+   * @param {Object} card The card object to play.
+   * @param {string} [chosenColor] The color chosen for a wild card.
+   */
+  function playSelectedCard(card, chosenColor = null) {
+      const playedCard = playerHand.splice(selectedPlayerCardIndex, 1)[0];
+
+      if (chosenColor) {
+          playedCard.color = chosenColor;
+      }
+      discardPile.push(playedCard);
+      selectedPlayerCardIndex = null;
+
+      statusMessageEl.textContent = `You played a ${playedCard.value} card.`;
+      updateUI();
+
+      if (checkPlayerWin()) return;
+
+      // Check for special cards
+      if (playedCard.value === 'drawTwo' || playedCard.value === 'wildDrawFour') {
+          statusMessageEl.textContent += " Opponent draws cards and their turn is skipped.";
+          opponentHand.push(...drawCards(playedCard.value === 'drawTwo' ? 2 : 4));
+          updateUI();
+          // Turn returns to the player
+          setTimeout(() => {
+              currentPlayer = 'player';
+              turnInProgress = false;
+              updateUI();
+              statusMessageEl.textContent = "Your turn! Play a card or draw.";
+          }, 1000);
+      } else if (playedCard.value === 'skip' || playedCard.value === 'reverse') {
+          statusMessageEl.textContent += " Opponent's turn is skipped!";
+          // Turn returns to the player
+          setTimeout(() => {
+              currentPlayer = 'player';
+              turnInProgress = false;
+              updateUI();
+              statusMessageEl.textContent = "Your turn! Play a card or draw.";
+          }, 1000);
+      } else {
+          // Normal card, switch turn
+          currentPlayer = 'opponent';
+          turnInProgress = false;
+          setTimeout(opponentTurn, 1000);
+      }
+  }
+
+  /**
+   * Handles the opponent's turn.
+   */
+  function opponentTurn() {
+      statusMessageEl.textContent = `Opponent's turn...`;
+      turnInProgress = true;
+      const topCard = discardPile[discardPile.length - 1];
+
+      const playableCardIndex = opponentHand.findIndex(card => isPlayable(card, topCard));
+
+      if (playableCardIndex !== -1) {
+          const cardToPlay = opponentHand.splice(playableCardIndex, 1)[0];
+
+          if (cardToPlay.type === 'wild') {
+              const randomColor = colors[Math.floor(Math.random() * colors.length)];
+              cardToPlay.color = randomColor;
+              statusMessageEl.textContent = `Opponent played a wild card and chose ${randomColor}.`;
+          } else {
+              statusMessageEl.textContent = `Opponent played a ${cardToPlay.value} card.`;
+          }
+
+          discardPile.push(cardToPlay);
+          updateUI();
+          if (checkOpponentWin()) return;
+
+          // Handle special cards for opponent
+          if (cardToPlay.value === 'drawTwo' || cardToPlay.value === 'wildDrawFour') {
+              statusMessageEl.textContent += " You draw cards and your turn is skipped.";
+              playerHand.push(...drawCards(cardToPlay.value === 'drawTwo' ? 2 : 4));
+              updateUI();
+              // Turn returns to the opponent
+              setTimeout(() => {
+                  currentPlayer = 'opponent';
+                  turnInProgress = false;
+                  opponentTurn();
+              }, 1000);
+          } else if (cardToPlay.value === 'skip' || cardToPlay.value === 'reverse') {
+              statusMessageEl.textContent += " Your turn is skipped!";
+              // Turn returns to the opponent
+              setTimeout(() => {
+                  currentPlayer = 'opponent';
+                  turnInProgress = false;
+                  opponentTurn();
+              }, 1000);
+          } else {
+              currentPlayer = 'player';
+              turnInProgress = false;
+              setTimeout(() => {
+                  statusMessageEl.textContent = "Your turn! Play a card or draw.";
+                  updateUI();
+              }, 1000);
+          }
+      } else {
+          // Opponent draws a card
+          const drawnCard = drawCards(1)[0];
+          opponentHand.push(drawnCard);
+          statusMessageEl.textContent = `Opponent had no card to play and drew a card.`;
+          updateUI();
+
+          currentPlayer = 'player';
+          turnInProgress = false;
+          setTimeout(() => {
+              statusMessageEl.textContent = "Your turn! Play a card or draw.";
+              updateUI();
+          }, 1000);
+      }
+  }
+
+  /**
+   * Checks if a card is playable.
+   */
+  function isPlayable(card, topCard) {
+      if (card.color === 'black') return true;
+      return card.color === topCard.color || card.value === topCard.value;
+  }
+
+  /**
+   * Renders a card element with styling.
+   */
+  function createCardElement(card, isHidden = false) {
+      const cardEl = document.createElement('div');
+      cardEl.className = `card ${isHidden ? 'back' : card.color}`;
+      if (!isHidden) {
+          let valueText = card.value.toUpperCase();
+          if (card.value === 'skip') valueText = 'SKIP';
+          if (card.value === 'reverse') valueText = 'REV';
+          if (card.value === 'drawTwo') valueText = '+2';
+          if (card.value === 'wild') valueText = 'WILD';
+          if (card.value === 'wildDrawFour') valueText = '+4';
+          cardEl.innerHTML = `<span class="card-value">${valueText}</span>`;
+      }
+      return cardEl;
+  }
+
+  /**
+   * Updates the game UI to match the current state.
+   */
+  function updateUI() {
+      // Clear hands and piles
+      playerHandEl.innerHTML = '';
+      opponentHandEl.innerHTML = '';
+      discardPileEl.innerHTML = '';
+
+      // Render opponent's hand (hidden cards)
+      for (let i = 0; i < opponentHand.length; i++) {
+          opponentHandEl.appendChild(createCardElement(null, true));
+      }
+
+      // Render discard pile
+      const topCard = discardPile[discardPile.length - 1];
+      discardPileEl.appendChild(createCardElement(topCard));
+
+      // Render player's hand with click listeners
+      const hasPlayable = playerHand.some(card => isPlayable(card, topCard));
+      playerHand.forEach((card, index) => {
+          const cardEl = createCardElement(card);
+          if (currentPlayer === 'player' && isPlayable(card, topCard)) {
+               cardEl.classList.add('playable');
+               cardEl.onclick = () => selectPlayerCard(index);
+          }
+          if (index === selectedPlayerCardIndex) {
+              cardEl.classList.add('selected');
+          }
+          playerHandEl.appendChild(cardEl);
+      });
+
+      // Update button states
+      playButtonEl.classList.toggle('disabled', selectedPlayerCardIndex === null || currentPlayer !== 'player' || turnInProgress);
+      drawButtonEl.classList.toggle('disabled', hasPlayable || currentPlayer !== 'player' || turnInProgress);
+
+      // Announce "UNO!" if player has 1 card left
+      if (playerHand.length === 1 && currentPlayer === 'player') {
+          statusMessageEl.textContent = "UNO! Your turn. Play a card or draw.";
+      }
+  }
+
+  /**
+   * Selects a card from the player's hand.
+   */
+  function selectPlayerCard(index) {
+      // Deselect previous card
+      if (selectedPlayerCardIndex !== null) {
+          const prevSelectedEl = playerHandEl.children[selectedPlayerCardIndex];
+          if (prevSelectedEl) {
+               prevSelectedEl.classList.remove('selected');
+          }
+      }
+
+      selectedPlayerCardIndex = index;
+      const currentSelectedEl = playerHandEl.children[selectedPlayerCardIndex];
+      currentSelectedEl.classList.add('selected');
+
+      playButtonEl.classList.remove('disabled');
+  }
+
+  /**
+   * Displays a custom message box.
+   */
+  function showMessageBox(title, text) {
+      messageBoxTitle.textContent = title;
+      messageBoxText.textContent = text;
+      messageBoxButtons.innerHTML = '';
+
+      const okButton = document.createElement('button');
+      okButton.className = 'button-86';
+      okButton.textContent = 'OK';
+      okButton.onclick = hideMessageBox;
+      messageBoxButtons.appendChild(okButton);
+
+      messageBoxOverlay.style.display = 'flex';
+  }
+
+  /**
+   * Shows the color picker for a wild card.
+   * @param {Function} callback Callback function to run after a color is chosen.
+   */
+  function showColorPicker(callback) {
+      messageBoxTitle.textContent = "Choose a New Color";
+      messageBoxText.textContent = "Select the color for the wild card.";
+      messageBoxButtons.innerHTML = '';
+
+      colors.forEach(color => {
+          const button = document.createElement('button');
+          button.className = `color-picker-btn ${color}`;
+          button.onclick = () => {
+              hideMessageBox();
+              playSelectedCard(playerHand[selectedPlayerCardIndex], color);
+          };
+          messageBoxButtons.appendChild(button);
+      });
+      messageBoxOverlay.style.display = 'flex';
+  }
+
+  /**
+   * Hides the custom message box.
+   */
+  function hideMessageBox() {
+      messageBoxOverlay.style.display = 'none';
+  }
+
+  function checkPlayerWin() {
+      if (playerHand.length === 0) {
+          showMessageBox("Congratulations!", "You have won the game!");
+          return true;
+      }
+      return false;
+  }
+
+  function checkOpponentWin() {
+      if (opponentHand.length === 0) {
+          showMessageBox("Game Over", "The opponent has won the game.");
+          return true;
+      }
+      return false;
+  }
+
+  // Dark Mode Toggle Logic
+  modeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+  });
+
+  // Initialize the game when the page loads
+  window.onload = initializeGame;
+
+</script>
+</body>
+</html>

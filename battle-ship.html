@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaryWEB | Battleship</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+        --primary-dark: #0c0c0c;
+        --primary-light: #ffffff;
+        --accent-start: #00F0FF;
+        --accent-end: #FF00F6;
+        --transition-slow: 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        --transition-fast: 0.3s ease;
+        --section-spacing: 80px;
+    }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        font-family: 'Inter', sans-serif;
+        color: var(--primary-dark);
+        background-color: var(--primary-light);
+        overflow-x: hidden;
+        line-height: 1.6;
+        transition: background-color 0.5s ease;
+    }
+    body.dark-mode {
+        background-color: var(--primary-dark);
+        color: var(--primary-light);
+    }
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+    }
+    .container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 0 40px;
+    }
+    /* Navigation */
+    nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 40px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        transition: var(--transition-fast);
+    }
+    body.dark-mode nav {
+        background: rgba(12, 12, 12, 0.8);
+    }
+    .logo {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 28px;
+        position: relative;
+        cursor: pointer;
+    }
+    .logo-morph {
+        display: inline-block;
+        transition: var(--transition-slow);
+    }
+    .nav-links {
+        display: flex;
+        gap: 40px;
+    }
+    .nav-link {
+        text-decoration: none;
+        color: inherit;
+        font-weight: 500;
+        position: relative;
+        padding: 8px 0;
+        overflow: hidden;
+    }
+    .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        transform: translateX(-100%);
+        transition: transform 0.4s ease;
+    }
+    .nav-link:hover::after {
+        transform: translateX(0);
+    }
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    .mode-toggle {
+        width: 50px;
+        height: 24px;
+        background: #e0e0e0;
+        border-radius: 12px;
+        position: relative;
+        cursor: pointer;
+        transition: var(--transition-fast);
+    }
+    body.dark-mode .mode-toggle {
+        background: #333;
+    }
+    .toggle-thumb {
+        width: 20px;
+        height: 20px;
+        background: var(--primary-light);
+        border-radius: 50%;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.3s ease;
+    }
+    body.dark-mode .toggle-thumb {
+        transform: translateX(26px);
+        background: var(--primary-dark);
+    }
+    /* Main Section */
+    .game-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: var(--section-spacing) 0;
+        padding-top: 120px;
+    }
+    .section-title {
+        font-size: 3.5rem;
+        margin-bottom: 60px;
+        text-align: center;
+        position: relative;
+    }
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        border-radius: 2px;
+    }
+    /* Button CSS */
+    .button-86 {
+        all: unset;
+        width: 100%;
+        max-width: 250px;
+        height: 50px;
+        font-size: 1.2rem;
+        background: transparent;
+        border: none;
+        position: relative;
+        color: #f0f0f0;
+        cursor: pointer;
+        z-index: 1;
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        text-decoration: none;
+        gap: 10px;
+        border-radius: 10px;
+    }
+    .button-86::after,
+    .button-86::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        z-index: -99999;
+        transition: all .4s;
+    }
+    .button-86::before {
+        transform: translate(0%, 0%);
+        width: 100%;
+        height: 100%;
+        background: #28282d;
+        border-radius: 10px;
+    }
+    body.dark-mode .button-86::before {
+        background: #1a1a1e;
+    }
+    .button-86::after {
+        transform: translate(10px, 10px);
+        width: 35px;
+        height: 35px;
+        background: #ffffff15;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        border-radius: 50px;
+    }
+    .button-86:hover::before {
+        transform: translate(5%, 20%);
+        width: 110%;
+        height: 110%;
+    }
+    .button-86:hover::after {
+        border-radius: 10px;
+        transform: translate(0, 0);
+        width: 100%;
+        height: 100%;
+    }
+    .button-86:active::after {
+        transition: 0s;
+        transform: translate(0, 5%);
+    }
+    /* Light Mode button adjustments */
+    body:not(.dark-mode) .button-86 {
+        color: var(--primary-dark);
+    }
+    body:not(.dark-mode) .button-86::before {
+        background: #e0e0e0;
+    }
+    body:not(.dark-mode) .button-86::after {
+        background: #00000015;
+    }
+    .button-86.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    /* Game Specific Styles */
+    .game-area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+        width: 100%;
+        max-width: 1200px;
+    }
+    .board-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+        width: 100%;
+    }
+    .game-board {
+        display: grid;
+        grid-template-columns: repeat(var(--board-size), 1fr);
+        grid-template-rows: repeat(var(--board-size), 1fr);
+        width: 100%;
+        max-width: 550px;
+        aspect-ratio: 1 / 1;
+        border: 4px solid #333;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        border-radius: 12px;
+    }
+    body.dark-mode .game-board {
+        border-color: #eee;
+    }
+    .board-title {
+        font-size: 1.8rem;
+        font-family: 'Space Grotesk', sans-serif;
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+    .cell {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid rgba(0,0,0,0.1);
+        background-color: #5d9ee2;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        position: relative;
+    }
+    .cell.ship {
+        background-color: #4a4a4a;
+    }
+    .cell.hit {
+        background-color: #ff0000;
+        animation: pulse-red 0.5s ease-in-out;
+    }
+    .cell.miss {
+        background-color: #c0c0c0;
+    }
+    .cell.sunk {
+        background-color: #333;
+        border-color: #fff;
+    }
+    .cell.ship:hover {
+        background-color: #6a6a6a;
+    }
+    .cell.hit:after {
+      content: '💥';
+      font-size: 1.5rem;
+      position: absolute;
+    }
+    .cell.miss:after {
+      content: '💦';
+      font-size: 1.5rem;
+      position: absolute;
+    }
+    .cell.sunk:after {
+      content: '💀';
+      font-size: 1.5rem;
+      position: absolute;
+    }
+    .game-info {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 900px;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.4rem;
+        font-weight: 500;
+        margin-top: 30px;
+    }
+    .status-message {
+      font-size: 1.8rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .message-box-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    }
+    .message-box {
+        background: var(--primary-dark);
+        color: var(--primary-light);
+        padding: 2.5rem;
+        border-radius: 1.5rem;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        max-width: 450px;
+        width: 90%;
+    }
+    .message-box h3 {
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .message-box p {
+        font-size: 1.2rem;
+        margin-bottom: 2.5rem;
+    }
+    .message-box .button-86 {
+        max-width: 220px;
+        font-size: 1.1rem;
+    }
+    @media (max-width: 768px) {
+        .container {
+            padding: 0 20px;
+        }
+        nav {
+            padding: 16px 20px;
+        }
+        .logo {
+            font-size: 24px;
+        }
+        .nav-links {
+            display: none;
+        }
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+        }
+        .board-container {
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .game-board {
+            width: 100%;
+            max-width: none;
+        }
+        .board-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="logo">
+    <span class="logo-morph">WaryWEB</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Games</a>
+    <a href="index.html" class="nav-link">Utilities</a>
+    <a href="index.html" class="nav-link">About</a>
+    <a href="index.html" class="nav-link">Contact</a>
+  </div>
+  <div class="nav-actions">
+    <div class="mode-toggle" id="modeToggle">
+      <div class="toggle-thumb"></div>
+    </div>
+  </div>
+</nav>
+
+<section id="battleship-section" class="game-container">
+  <div class="container game-area">
+    <h2 class="section-title">Battleship</h2>
+
+    <div class="board-container">
+      <div>
+        <h3 class="board-title">My Ships</h3>
+        <div id="player-board" data-id="player" class="game-board"></div>
+      </div>
+      <div>
+        <h3 class="board-title">Enemy Fleet</h3>
+        <div id="computer-board" data-id="computer" class="game-board"></div>
+      </div>
+    </div>
+
+    <div class="game-info">
+      <p id="turn-display"></p>
+    </div>
+    <div class="status-message" id="status-message"></div>
+
+    <div class="game-controls flex justify-center gap-4 mt-6">
+      <button id="start-game" class="button-86">Start Game</button>
+      <button id="restart-button" class="button-86 hidden">Restart</button>
+    </div>
+  </div>
+</section>
+
+<!-- Message Box Overlay -->
+<div id="message-box-overlay" class="message-box-overlay">
+  <div id="message-box" class="message-box">
+    <h3 id="message-box-title"></h3>
+    <p id="message-box-text"></p>
+    <div id="message-box-buttons" class="flex justify-center gap-4"></div>
+  </div>
+</div>
+
+<script>
+  // --- BATTLESHIP Game Logic and UI Management ---
+
+  // Game state variables
+  const BOARD_SIZE = 7; // Board size is now 7x7 for better mobile usability
+  const EMPTY = 0;
+  const SHIP = 1;
+  const HIT = 2;
+  const MISS = 3;
+
+  let playerBoard = [];
+  let computerBoard = [];
+  let playerShips = [];
+  let computerShips = [];
+  let gameRunning = false;
+  let currentPlayer = 'player';
+  const AI_THINKING_TIME = 1000; // 1 second delay for AI turn
+
+  // DOM elements
+  const playerBoardEl = document.getElementById('player-board');
+  const computerBoardEl = document.getElementById('computer-board');
+  const turnDisplayEl = document.getElementById('turn-display');
+  const statusMessageEl = document.getElementById('status-message');
+  const startGameBtn = document.getElementById('start-game');
+  const restartBtn = document.getElementById('restart-button');
+  const messageBoxOverlay = document.getElementById('message-box-overlay');
+  const messageBoxTitle = document.getElementById('message-box-title');
+  const messageBoxText = document.getElementById('message-box-text');
+  const messageBoxButtons = document.getElementById('message-box-buttons');
+  const modeToggle = document.getElementById('modeToggle');
+
+  // Ship data: name and length
+  // The ships list has been adjusted for the smaller board size.
+  const ships = [
+    { name: 'Carrier', length: 5 },
+    { name: 'Battleship', length: 4 },
+    { name: 'Cruiser', length: 3 },
+    { name: 'Destroyer', length: 2 },
+  ];
+
+  // --- Game State Management ---
+
+  /**
+   * Initializes the game board and places ships.
+   */
+  function initGame() {
+    gameRunning = true;
+    currentPlayer = 'player';
+
+    // Reset boards to initial empty state
+    playerBoard = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(EMPTY));
+    computerBoard = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(EMPTY));
+
+    // Reset ship arrays to the original 4 ships
+    playerShips = JSON.parse(JSON.stringify(ships));
+    computerShips = JSON.parse(JSON.stringify(ships));
+
+    // Place ships randomly for both players
+    placeShipsRandomly(playerBoard, playerShips);
+    placeShipsRandomly(computerBoard, computerShips);
+
+    updateUI();
+    turnDisplayEl.textContent = "Your Turn to Fire!";
+    statusMessageEl.textContent = "Click a square on the Enemy Fleet board to fire.";
+
+    // Manage button visibility
+    startGameBtn.classList.add('hidden');
+    restartBtn.classList.remove('hidden');
+  }
+
+  /**
+   * Resets the game to the initial start screen.
+   */
+  function resetGame() {
+    gameRunning = false;
+    // Initialize boards with correct dimensions, filled with EMPTY state
+    playerBoard = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(EMPTY));
+    computerBoard = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(EMPTY));
+    playerShips = [];
+    computerShips = [];
+
+    updateUI(); // This will now correctly build empty boards
+
+    startGameBtn.classList.remove('hidden');
+    restartBtn.classList.add('hidden');
+
+    turnDisplayEl.textContent = "Click 'Start Game' to begin!";
+    statusMessageEl.textContent = "";
+  }
+
+  /**
+   * Updates the visual representation of the boards.
+   */
+  function updateUI() {
+    // Set the CSS custom property for board size
+    document.documentElement.style.setProperty('--board-size', BOARD_SIZE);
+    playerBoardEl.innerHTML = '';
+    computerBoardEl.innerHTML = '';
+    buildBoardVisuals(playerBoardEl, playerBoard, false);
+    buildBoardVisuals(computerBoardEl, computerBoard, true);
+  }
+
+  /**
+   * Creates the visual grid for a given board.
+   * @param {HTMLElement} boardEl The board element to build.
+   * @param {Array<Array<number>>} boardData The data for the board.
+   * @param {boolean} isComputerBoard True if this is the computer's board.
+   */
+  function buildBoardVisuals(boardEl, boardData, isComputerBoard) {
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        const cell = document.createElement('div');
+        cell.className = `cell`;
+        cell.dataset.row = r;
+        cell.dataset.col = c;
+
+        const cellValue = boardData[r][c];
+
+        // Apply visual classes based on cell state
+        if (cellValue === SHIP) {
+          if (!isComputerBoard) { // Only show player's ships
+            cell.classList.add('ship');
+          }
+        } else if (cellValue === HIT) {
+          cell.classList.add('hit');
+        } else if (cellValue === MISS) {
+          cell.classList.add('miss');
+        }
+
+        // Add click listener only for the computer's board
+        if (isComputerBoard) {
+            cell.addEventListener('click', handlePlayerShot);
+        }
+
+        boardEl.appendChild(cell);
+      }
+    }
+  }
+
+  // --- Ship Placement Logic ---
+
+  /**
+   * Places all ships on a board randomly.
+   * @param {Array<Array<number>>} board The board to place ships on.
+   * @param {Array<Object>} shipsList The list of ships to place.
+   */
+  function placeShipsRandomly(board, shipsList) {
+    for (const ship of shipsList) {
+      let placed = false;
+      while (!placed) {
+        const orientation = Math.random() < 0.5 ? 'horizontal' : 'vertical';
+        const row = Math.floor(Math.random() * BOARD_SIZE);
+        const col = Math.floor(Math.random() * BOARD_SIZE);
+
+        if (isValidPlacement(board, ship, row, col, orientation)) {
+          placeShip(board, ship, row, col, orientation);
+          placed = true;
+        }
+      }
+    }
+  }
+
+  /**
+   * Checks if a ship placement is valid.
+   * @returns {boolean} True if the placement is valid.
+   */
+  function isValidPlacement(board, ship, row, col, orientation) {
+      if (orientation === 'horizontal') {
+          if (col + ship.length > BOARD_SIZE) return false;
+          for (let i = 0; i < ship.length; i++) {
+              if (board[row][col + i] !== EMPTY) return false;
+          }
+      } else { // vertical
+          if (row + ship.length > BOARD_SIZE) return false;
+          for (let i = 0; i < ship.length; i++) {
+              if (board[row + i][col] !== EMPTY) return false;
+          }
+      }
+      return true;
+  }
+
+  /**
+   * Places a ship on the board and saves its position.
+   */
+  function placeShip(board, ship, row, col, orientation) {
+    ship.positions = [];
+    if (orientation === 'horizontal') {
+      for (let i = 0; i < ship.length; i++) {
+        board[row][col + i] = SHIP;
+        ship.positions.push({ r: row, c: col + i });
+      }
+    } else { // vertical
+      for (let i = 0; i < ship.length; i++) {
+        board[row + i][col] = SHIP;
+        ship.positions.push({ r: row + i, c: col });
+      }
+    }
+  }
+
+  // --- Game Play Logic ---
+
+  /**
+   * Handles the player's shot on the computer's board.
+   * @param {Event} event The click event.
+   */
+  function handlePlayerShot(event) {
+    if (!gameRunning || currentPlayer !== 'player') return;
+
+    const targetCell = event.currentTarget;
+    const r = parseInt(targetCell.dataset.row);
+    const c = parseInt(targetCell.dataset.col);
+
+    if (computerBoard[r][c] === HIT || computerBoard[r][c] === MISS) {
+      statusMessageEl.textContent = "You already fired here. Try a different square.";
+      return;
+    }
+
+    // Fire the shot and check for a hit
+    const result = fireShot(computerBoard, computerShips, r, c);
+
+    if (result.isHit) {
+      statusMessageEl.textContent = "It's a HIT!";
+      if (result.isSunk) {
+        statusMessageEl.textContent = `You sunk the enemy's ${result.sunkShip.name}!`;
+      }
+    } else {
+      statusMessageEl.textContent = "It's a MISS.";
+    }
+
+    updateUI();
+
+    // Check for win condition after the player's turn
+    if (checkWinCondition(computerShips)) {
+      endGame("You Win!", "Congratulations! You've sunk all the enemy ships.");
+    } else {
+      switchPlayer();
+    }
+  }
+
+  /**
+   * The AI's turn to fire at the player's board.
+   */
+  function aiTurn() {
+    turnDisplayEl.textContent = "Enemy's Turn...";
+    let r, c;
+    let validShot = false;
+
+    // A simple AI that fires at a random untargeted cell
+    while (!validShot) {
+      r = Math.floor(Math.random() * BOARD_SIZE);
+      c = Math.floor(Math.random() * BOARD_SIZE);
+      if (playerBoard[r][c] !== HIT && playerBoard[r][c] !== MISS) {
+        validShot = true;
+      }
+    }
+
+    const result = fireShot(playerBoard, playerShips, r, c);
+
+    if (result.isHit) {
+      statusMessageEl.textContent = "You've been hit!";
+      if (result.isSunk) {
+        statusMessageEl.textContent = `They sunk your ${result.sunkShip.name}!`;
+      }
+    } else {
+      statusMessageEl.textContent = "The enemy missed.";
+    }
+
+    updateUI();
+
+    if (checkWinCondition(playerShips)) {
+      endGame("Game Over", "Your fleet has been destroyed. The enemy wins.");
+    } else {
+      switchPlayer();
+    }
+  }
+
+  /**
+   * Processes a shot on a given board.
+   * @param {Array<Array<number>>} board The board to shoot at.
+   * @param {Array<Object>} shipsList The ships on that board.
+   * @returns {Object} The result of the shot (hit, sunk, etc.).
+   */
+  function fireShot(board, shipsList, r, c) {
+    let result = { isHit: false, isSunk: false, sunkShip: null };
+
+    if (board[r][c] === SHIP) {
+      board[r][c] = HIT;
+      result.isHit = true;
+
+      // Find the ship that was hit
+      const hitShip = shipsList.find(ship =>
+        ship.positions.some(pos => pos.r === r && pos.c === c)
+      );
+
+      // Mark the hit on the ship
+      hitShip.hits = (hitShip.hits || 0) + 1;
+
+      // Check if the ship is sunk
+      if (hitShip.hits === hitShip.length) {
+        result.isSunk = true;
+        result.sunkShip = hitShip;
+        // Mark all cells of the sunk ship as Sunk on the board
+        hitShip.positions.forEach(pos => {
+            const boardEl = board === playerBoard ? playerBoardEl : computerBoardEl;
+            const cell = boardEl.querySelector(`.cell[data-row='${pos.r}'][data-col='${pos.c}']`);
+            if (cell) cell.classList.add('sunk');
+        });
+      }
+    } else {
+      board[r][c] = MISS;
+    }
+    return result;
+  }
+
+  /**
+   * Switches the current player.
+   */
+  function switchPlayer() {
+    currentPlayer = currentPlayer === 'player' ? 'computer' : 'player';
+
+    if (currentPlayer === 'player') {
+      turnDisplayEl.textContent = "Your Turn to Fire!";
+    } else {
+      turnDisplayEl.textContent = "Enemy's Turn...";
+      setTimeout(aiTurn, AI_THINKING_TIME);
+    }
+  }
+
+  /**
+   * Checks if all ships in a list have been sunk.
+   * @param {Array<Object>} shipsList The list of ships to check.
+   * @returns {boolean} True if all ships are sunk.
+   */
+  function checkWinCondition(shipsList) {
+      // Check if all ships have been sunk
+      return shipsList.every(ship => ship.hits === ship.length);
+  }
+
+  /**
+   * Ends the game and displays a message.
+   * @param {string} title The title of the message.
+   * @param {string} text The text of the message.
+   */
+  function endGame(title, text) {
+      gameRunning = false;
+      showMessageBox(title, text, true);
+  }
+
+  /**
+   * Displays a custom message box.
+   */
+  function showMessageBox(title, text, showRestartButton = false) {
+      messageBoxTitle.textContent = title;
+      messageBoxText.textContent = text;
+      messageBoxButtons.innerHTML = '';
+
+      if (showRestartButton) {
+          const restartButton = document.createElement('button');
+          restartButton.className = 'button-86';
+          restartButton.textContent = 'Play Again';
+          restartButton.onclick = () => {
+              hideMessageBox();
+              initGame();
+          };
+          messageBoxButtons.appendChild(restartButton);
+      } else {
+          const okButton = document.createElement('button');
+          okButton.className = 'button-86';
+          okButton.textContent = 'OK';
+          okButton.onclick = hideMessageBox;
+          messageBoxButtons.appendChild(okButton);
+      }
+      messageBoxOverlay.style.display = 'flex';
+  }
+
+  /**
+   * Hides the custom message box.
+   */
+  function hideMessageBox() {
+      messageBoxOverlay.style.display = 'none';
+  }
+
+  // --- Event Listeners ---
+  startGameBtn.addEventListener('click', initGame);
+  restartBtn.addEventListener('click', initGame);
+  modeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+  });
+
+  // Initial setup
+  document.addEventListener('DOMContentLoaded', () => {
+    resetGame();
+  });
+</script>
+</body>
+</html>
