@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaryWEB | Checkers Game</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+        --primary-dark: #0c0c0c;
+        --primary-light: #ffffff;
+        --accent-start: #00F0FF;
+        --accent-end: #FF00F6;
+        --transition-slow: 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        --transition-fast: 0.3s ease;
+        --section-spacing: 80px;
+    }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        font-family: 'Inter', sans-serif;
+        color: var(--primary-dark);
+        background-color: var(--primary-light);
+        overflow-x: hidden;
+        line-height: 1.6;
+        transition: background-color 0.5s ease;
+    }
+    body.dark-mode {
+        background-color: var(--primary-dark);
+        color: var(--primary-light);
+    }
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+    }
+    .container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 0 40px;
+    }
+    /* Navigation */
+    nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 40px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        transition: var(--transition-fast);
+    }
+    body.dark-mode nav {
+        background: rgba(12, 12, 12, 0.8);
+    }
+    .logo {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 28px;
+        position: relative;
+        cursor: pointer;
+    }
+    .logo-morph {
+        display: inline-block;
+        transition: var(--transition-slow);
+    }
+    .nav-links {
+        display: flex;
+        gap: 40px;
+    }
+    .nav-link {
+        text-decoration: none;
+        color: inherit;
+        font-weight: 500;
+        position: relative;
+        padding: 8px 0;
+        overflow: hidden;
+    }
+    .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        transform: translateX(-100%);
+        transition: transform 0.4s ease;
+    }
+    .nav-link:hover::after {
+        transform: translateX(0);
+    }
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    .mode-toggle {
+        width: 50px;
+        height: 24px;
+        background: #e0e0e0;
+        border-radius: 12px;
+        position: relative;
+        cursor: pointer;
+        transition: var(--transition-fast);
+    }
+    body.dark-mode .mode-toggle {
+        background: #333;
+    }
+    .toggle-thumb {
+        width: 20px;
+        height: 20px;
+        background: var(--primary-light);
+        border-radius: 50%;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.3s ease;
+    }
+    body.dark-mode .toggle-thumb {
+        transform: translateX(26px);
+        background: var(--primary-dark);
+    }
+    /* Main Section */
+    .game-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: var(--section-spacing) 0;
+        padding-top: 120px;
+    }
+    .section-title {
+        font-size: 3.5rem;
+        margin-bottom: 60px;
+        text-align: center;
+        position: relative;
+    }
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        border-radius: 2px;
+    }
+    /* Button CSS */
+    .button-86 {
+        all: unset;
+        width: 100%;
+        max-width: 250px;
+        height: 50px;
+        font-size: 1.2rem;
+        background: transparent;
+        border: none;
+        position: relative;
+        color: #f0f0f0;
+        cursor: pointer;
+        z-index: 1;
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        text-decoration: none;
+        gap: 10px;
+        border-radius: 10px;
+    }
+    .button-86::after,
+    .button-86::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        z-index: -99999;
+        transition: all .4s;
+    }
+    .button-86::before {
+        transform: translate(0%, 0%);
+        width: 100%;
+        height: 100%;
+        background: #28282d;
+        border-radius: 10px;
+    }
+    body.dark-mode .button-86::before {
+        background: #1a1a1e;
+    }
+    .button-86::after {
+        transform: translate(10px, 10px);
+        width: 35px;
+        height: 35px;
+        background: #ffffff15;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        border-radius: 50px;
+    }
+    .button-86:hover::before {
+        transform: translate(5%, 20%);
+        width: 110%;
+        height: 110%;
+    }
+    .button-86:hover::after {
+        border-radius: 10px;
+        transform: translate(0, 0);
+        width: 100%;
+        height: 100%;
+    }
+    .button-86:active::after {
+        transition: 0s;
+        transform: translate(0, 5%);
+    }
+    /* Light Mode button adjustments */
+    body:not(.dark-mode) .button-86 {
+        color: var(--primary-dark);
+    }
+    body:not(.dark-mode) .button-86::before {
+        background: #e0e0e0;
+    }
+    body:not(.dark-mode) .button-86::after {
+        background: #00000015;
+    }
+    .button-86.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    /* Checkers Game Specific Styles */
+    .game-area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+        width: 100%;
+        max-width: 900px;
+    }
+    .checkers-board {
+        display: grid;
+        grid-template-columns: repeat(8, minmax(0, 1fr));
+        grid-template-rows: repeat(8, minmax(0, 1fr));
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        max-width: 500px;
+        margin: 0 auto;
+        border: 2px solid #333;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        border-radius: 10px;
+    }
+    body.dark-mode .checkers-board {
+        border: 2px solid #eee;
+    }
+    .dark-square {
+        background-color: #1a1a1e;
+    }
+    .light-square {
+        background-color: #f0f0f0;
+    }
+    body.dark-mode .light-square {
+        background-color: #28282d;
+    }
+    .checker-piece {
+        width: 85%;
+        height: 85%;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #fff;
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        cursor: pointer;
+        position: relative;
+    }
+    .checker-piece.red {
+        background: linear-gradient(45deg, #FF00F6, #f9a8d4);
+        box-shadow: 0 0 10px #FF00F6;
+    }
+    .checker-piece.black {
+        background: linear-gradient(45deg, #00F0FF, #86e3ff);
+        box-shadow: 0 0 10px #00F0FF;
+    }
+    .checker-piece.king::before {
+        content: '★';
+        position: absolute;
+        font-size: 1.5rem;
+        color: #FFD700;
+        text-shadow: 0 0 8px #FFD700;
+    }
+    .selected {
+        outline: 3px solid #f9a8d4;
+        transform: scale(1.1);
+        box-shadow: 0 0 15px #f9a8d4;
+    }
+    .valid-move {
+        background-color: rgba(255, 0, 246, 0.4);
+        cursor: pointer;
+    }
+    .game-info {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      max-width: 800px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin-top: 20px;
+      text-align: center;
+    }
+    .status-message {
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin: 1rem 0;
+    }
+    .message-box-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    }
+    .message-box {
+        background: var(--primary-dark);
+        color: var(--primary-light);
+        padding: 2rem;
+        border-radius: 1rem;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        max-width: 400px;
+        width: 90%;
+    }
+    .message-box h3 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    .message-box p {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+    .message-box .button-86 {
+        max-width: 200px;
+        font-size: 1rem;
+    }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 5px rgba(0,240,255,0.4); }
+        50% { box-shadow: 0 0 15px rgba(0,240,255,0.8); }
+        100% { box-shadow: 0 0 5px rgba(0,240,255,0.4); }
+    }
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .container {
+            padding: 0 20px;
+        }
+        nav {
+            padding: 16px 20px;
+        }
+        .logo {
+            font-size: 24px;
+        }
+        .nav-links {
+            display: none;
+        }
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+        }
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="#" class="logo">
+    <span class="logo-morph">WaryWEB</span>
+  </a>
+  <div class="nav-links">
+    <a href="#" class="nav-link">Games</a>
+    <a href="#" class="nav-link">Utilities</a>
+    <a href="#" class="nav-link">About</a>
+    <a href="#" class="nav-link">Contact</a>
+  </div>
+  <div class="nav-actions">
+    <div class="mode-toggle" id="modeToggle">
+      <div class="toggle-thumb"></div>
+    </div>
+  </div>
+</nav>
+
+<section id="checkers-game-section" class="game-container">
+  <div class="container game-area">
+    <h2 class="section-title">Checkers</h2>
+
+    <div id="game-board" class="checkers-board">
+      <!-- Board cells and pieces are generated dynamically -->
+    </div>
+
+    <div class="game-info">
+      <p>Current Turn: <span id="status">Your turn</span></p>
+    </div>
+
+    <div class="game-controls mt-6">
+      <button id="restart-button" class="button-86">Restart Game</button>
+    </div>
+  </div>
+</section>
+
+<div id="message-box-overlay" class="message-box-overlay">
+  <div id="message-box" class="message-box">
+    <h3 id="message-box-title"></h3>
+    <p id="message-box-text"></p>
+    <div id="message-box-buttons" class="flex justify-center gap-4"></div>
+  </div>
+</div>
+
+<script>
+  // --- Game State Variables ---
+  let board;
+  let currentPlayer;
+  let selectedPiece = null;
+  let isGameActive = true;
+  const aiPlayer = 'black';
+  const humanPlayer = 'red';
+  let isJumpInProgress = false;
+
+  // --- DOM Elements ---
+  const boardElement = document.getElementById('game-board');
+  const statusElement = document.getElementById('status');
+  const restartButton = document.getElementById('restart-button');
+  const messageBoxOverlay = document.getElementById('message-box-overlay');
+  const messageBoxTitle = document.getElementById('message-box-title');
+  const messageBoxText = document.getElementById('message-box-text');
+  const messageBoxButtons = document.getElementById('message-box-buttons');
+  const modeToggle = document.getElementById('modeToggle');
+
+  // --- Event Listeners ---
+  boardElement.addEventListener('click', handleBoardClick);
+  restartButton.addEventListener('click', resetGame);
+  modeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+  });
+
+  // --- Core Game Functions ---
+
+  /**
+   * Initializes or resets the game state and board.
+   */
+  function resetGame() {
+      board = Array(8).fill(null).map(() => Array(8).fill(null));
+      currentPlayer = humanPlayer;
+      selectedPiece = null;
+      isGameActive = true;
+      isJumpInProgress = false;
+
+      // Place initial pieces
+      for (let r = 0; r < 3; r++) {
+          for (let c = 0; c < 8; c++) {
+              if ((r + c) % 2 !== 0) {
+                  board[r][c] = 'black';
+              }
+          }
+      }
+      for (let r = 5; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+              if ((r + c) % 2 !== 0) {
+                  board[r][c] = 'red';
+              }
+          }
+      }
+      statusElement.textContent = "Your turn";
+      renderBoard();
+      hideMessageBox();
+  }
+
+  /**
+   * Renders the game board and all pieces.
+   */
+  function renderBoard() {
+      boardElement.innerHTML = '';
+      for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+              const cell = document.createElement('div');
+              cell.className = `board-cell flex items-center justify-center`;
+              cell.classList.add((r + c) % 2 === 0 ? 'light-square' : 'dark-square');
+              cell.dataset.r = r;
+              cell.dataset.c = c;
+
+              const pieceType = board[r][c];
+              if (pieceType) {
+                  const piece = document.createElement('div');
+                  piece.className = `checker-piece ${pieceType.includes('red') ? 'red' : 'black'}`;
+                  if (pieceType.includes('King')) {
+                      piece.classList.add('king');
+                  }
+                  cell.appendChild(piece);
+              }
+              boardElement.appendChild(cell);
+          }
+      }
+      highlightValidMoves();
+  }
+
+  /**
+   * Highlights the valid moves for the selected piece.
+   */
+  function highlightValidMoves() {
+      document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+      document.querySelectorAll('.valid-move').forEach(el => el.classList.remove('valid-move'));
+
+      if (!selectedPiece) return;
+
+      const pieceElement = boardElement.querySelector(`[data-r="${selectedPiece.r}"][data-c="${selectedPiece.c}"]`).querySelector('.checker-piece');
+      if (pieceElement) {
+          pieceElement.classList.add('selected');
+      }
+
+      const moves = getPossibleMoves(selectedPiece.r, selectedPiece.c);
+      moves.forEach(move => {
+          const [r, c] = [move.to.r, move.to.c];
+          const cell = boardElement.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+          if (cell) {
+              cell.classList.add('valid-move');
+          }
+      });
+  }
+
+  /**
+   * Handles a click on the game board.
+   * @param {Event} event The click event.
+   */
+  function handleBoardClick(event) {
+      if (!isGameActive || currentPlayer === aiPlayer) return;
+
+      const cell = event.target.closest('.board-cell');
+      if (!cell) return;
+
+      const r = parseInt(cell.dataset.r, 10);
+      const c = parseInt(cell.dataset.c, 10);
+
+      const mandatoryJumps = findJumpsForPlayer(currentPlayer);
+      const piece = board[r][c];
+
+      // If a cell with a piece of the current player is clicked
+      if (piece && piece.includes(currentPlayer)) {
+          if (isJumpInProgress && (!selectedPiece || selectedPiece.r !== r || selectedPiece.c !== c)) {
+              showMessageBox("Chained Jump!", "You must continue the jump with the same piece.", false);
+              return;
+          }
+
+          const pieceJumps = findJumps(r, c);
+
+          if (mandatoryJumps.length > 0 && pieceJumps.length === 0) {
+              showMessageBox("Mandatory Jump!", "You must move a piece that can jump.", false);
+              selectedPiece = null;
+          } else {
+              selectedPiece = { r, c };
+          }
+      } else if (selectedPiece) {
+          const allPossibleMoves = getPossibleMoves(selectedPiece.r, selectedPiece.c);
+          const validMove = allPossibleMoves.find(move => move.to.r === r && move.to.c === c);
+
+          if (validMove) {
+              makeMove(validMove);
+          } else {
+              selectedPiece = null;
+          }
+      } else {
+          selectedPiece = null;
+      }
+
+      renderBoard();
+  }
+
+  /**
+   * Checks if a move is valid based on game rules.
+   * @param {object} move The move object with from and to coordinates.
+   * @returns {boolean} True if the move is valid, false otherwise.
+   */
+  function isValidMove(move) {
+      const allPossibleMoves = getPossibleMoves(move.from.r, move.from.c);
+      return allPossibleMoves.some(validMove => validMove.to.r === move.to.r && validMove.to.c === move.to.c);
+  }
+
+  /**
+   * Gets all possible moves (including jumps) for a single piece.
+   * @param {number} r The row of the piece.
+   * @param {number} c The column of the piece.
+   * @returns {Array<object>} An array of valid move objects with from and to coordinates.
+   */
+  function getPossibleMoves(r, c) {
+      const piece = board[r][c];
+      if (!piece) return [];
+
+      const moves = [];
+      const isKing = piece.includes('King');
+      const direction = piece.includes(humanPlayer) ? -1 : 1;
+
+      const jumpMoves = findJumps(r, c);
+      if (jumpMoves.length > 0) {
+          return jumpMoves;
+      }
+
+      const allPlayerJumps = findJumpsForPlayer(currentPlayer);
+      if (allPlayerJumps.length > 0) {
+          return []; // Can't make a regular move if a jump is available
+      }
+
+      // Regular moves
+      const directions = isKing ? [-1, 1] : [direction];
+      for (const dir of directions) {
+          for (const side of [-1, 1]) {
+              const newR = r + dir;
+              const newC = c + side;
+              if (newR >= 0 && newR < 8 && newC >= 0 && newC < 8 && board[newR][newC] === null) {
+                  moves.push({ from: { r, c }, to: { r: newR, c: newC } });
+              }
+          }
+      }
+      return moves;
+  }
+
+  /**
+   * Finds all jump moves for a single piece.
+   * @param {number} r The row of the piece.
+   * @param {number} c The column of the piece.
+   * @returns {Array<object>} An array of valid jump move objects.
+   */
+  function findJumps(r, c) {
+      const jumps = [];
+      const piece = board[r][c];
+      if (!piece) return jumps;
+
+      const isKing = piece.includes('King');
+      const direction = piece.includes(humanPlayer) ? -1 : 1;
+      const opponent = piece.includes(humanPlayer) ? aiPlayer : humanPlayer;
+
+      const directions = isKing ? [-1, 1] : [direction];
+
+      for (const dir of directions) {
+          for (const side of [-1, 1]) {
+              const jumpOverR = r + dir;
+              const jumpOverC = c + side;
+              const landingR = r + 2 * dir;
+              const landingC = c + 2 * side;
+
+              if (landingR >= 0 && landingR < 8 && landingC >= 0 && landingC < 8) {
+                  if (board[jumpOverR] && board[jumpOverR][jumpOverC] && board[jumpOverR][jumpOverC].includes(opponent) && !board[landingR][landingC]) {
+                      jumps.push({ from: { r, c }, to: { r: landingR, c: landingC }, captured: { r: jumpOverR, c: jumpOverC } });
+                  }
+              }
+          }
+      }
+      return jumps;
+  }
+
+  /**
+   * Finds all jump moves for the entire player.
+   * @param {string} player The player to check for ('red' or 'black').
+   * @returns {Array<object>} An array of objects with fromR, fromC, toR, toC.
+   */
+  function findJumpsForPlayer(player) {
+      const allJumps = [];
+      for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+              if (board[r][c] && board[r][c].includes(player)) {
+                  const jumps = findJumps(r, c);
+                  jumps.forEach(move => allJumps.push(move));
+              }
+          }
+      }
+      return allJumps;
+  }
+
+  /**
+   * Makes a move on the board and updates the game state.
+   * @param {object} move The move object with from and to coordinates.
+   */
+  function makeMove(move) {
+      const { from, to, captured } = move;
+
+      board[to.r][to.c] = board[from.r][from.c];
+      board[from.r][from.c] = null;
+
+      if (captured) {
+          board[captured.r][captured.c] = null;
+
+          const chainedJumps = findJumps(to.r, to.c);
+          if (chainedJumps.length > 0) {
+              isJumpInProgress = true;
+              selectedPiece = { r: to.r, c: to.c };
+              renderBoard();
+              return;
+          }
+      }
+
+      if (board[to.r][to.c] === humanPlayer && to.r === 0) {
+          board[to.r][to.c] = 'redKing';
+      } else if (board[to.r][to.c] === aiPlayer && to.r === 7) {
+          board[to.r][to.c] = 'blackKing';
+      }
+
+      isJumpInProgress = false;
+      selectedPiece = null;
+      switchPlayer();
+      renderBoard();
+  }
+
+  /**
+   * Switches the current player and triggers the AI's move if it's their turn.
+   */
+  function switchPlayer() {
+      currentPlayer = currentPlayer === humanPlayer ? aiPlayer : humanPlayer;
+      statusElement.textContent = `${currentPlayer === humanPlayer ? 'Your' : 'AI'}'s turn`;
+      checkGameStatus();
+      if (currentPlayer === aiPlayer && isGameActive) {
+          statusElement.textContent = "AI is thinking...";
+          setTimeout(aiMove, 1000);
+      }
+  }
+
+  /**
+   * Checks the game status for a win or a draw.
+   */
+  function checkGameStatus() {
+      const humanPieces = board.flat().filter(p => p && p.includes(humanPlayer)).length;
+      const aiPieces = board.flat().filter(p => p && p.includes(aiPlayer)).length;
+
+      if (humanPieces === 0) {
+          isGameActive = false;
+          showMessageBox("Game Over", "AI Wins!", true);
+          return;
+      } else if (aiPieces === 0) {
+          isGameActive = false;
+          showMessageBox("You Win!", "Congratulations! You captured all of the AI's pieces.", true);
+          return;
+      }
+
+      const humanMoves = getPossibleMovesForPlayer(humanPlayer);
+      if (humanMoves.length === 0 && currentPlayer === humanPlayer) {
+          isGameActive = false;
+          showMessageBox("Game Over", "AI Wins! You have no legal moves left.", true);
+          return;
+      }
+
+      const aiMoves = getPossibleMovesForPlayer(aiPlayer);
+      if (aiMoves.length === 0 && currentPlayer === aiPlayer) {
+          isGameActive = false;
+          showMessageBox("You Win!", "AI has no legal moves left. You win!", true);
+          return;
+      }
+  }
+
+  /**
+   * Gets all possible moves for a given player.
+   * @param {string} player The player to check for.
+   * @returns {Array<object>} An array of moves {from, to, captured}.
+   */
+  function getPossibleMovesForPlayer(player) {
+      const allMoves = [];
+      const mandatoryJumps = findJumpsForPlayer(player);
+
+      if (mandatoryJumps.length > 0) {
+          return mandatoryJumps;
+      }
+
+      for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+              if (board[r][c] && board[r][c].includes(player)) {
+                  const moves = getPossibleMoves(r, c);
+                  moves.forEach(move => allMoves.push(move));
+              }
+          }
+      }
+      return allMoves;
+  }
+
+  /**
+   * AI logic for a simple opponent.
+   */
+  function aiMove() {
+      if (!isGameActive) return;
+
+      const allPossibleMoves = getPossibleMovesForPlayer(aiPlayer);
+
+      if (allPossibleMoves.length > 0) {
+          const chosenMove = allPossibleMoves[Math.floor(Math.random() * allPossibleMoves.length)];
+
+          // Add a temporary visual highlight for the AI's move
+          const fromCell = boardElement.querySelector(`[data-r="${chosenMove.from.r}"][data-c="${chosenMove.from.c}"]`).querySelector('.checker-piece');
+          if (fromCell) {
+              fromCell.classList.add('selected');
+          }
+
+          setTimeout(() => {
+              makeMove(chosenMove);
+          }, 1000); // 1-second delay for AI move animation
+      } else {
+          checkGameStatus();
+      }
+  }
+
+  /**
+   * Displays a custom message box.
+   */
+  function showMessageBox(title, text, showRestartButton = false) {
+      messageBoxTitle.textContent = title;
+      messageBoxText.textContent = text;
+      messageBoxButtons.innerHTML = '';
+      const closeButton = document.createElement('button');
+      closeButton.className = 'button-86';
+      closeButton.textContent = 'OK';
+      closeButton.onclick = hideMessageBox;
+
+      if (showRestartButton) {
+          closeButton.textContent = 'Play Again';
+          closeButton.onclick = resetGame;
+      }
+
+      messageBoxButtons.appendChild(closeButton);
+      messageBoxOverlay.style.display = 'flex';
+  }
+
+  /**
+   * Hides the custom message box.
+   */
+  function hideMessageBox() {
+      messageBoxOverlay.style.display = 'none';
+  }
+
+  // --- Initial Call to Start the Game ---
+  document.addEventListener('DOMContentLoaded', () => {
+    resetGame();
+    showMessageBox("Welcome to Checkers", "Your pieces are purple and the AI's are blue.", false);
+  });
+</script>
+</body>
+</html>

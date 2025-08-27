@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaryWEB | Sudoku</title>
+    <link href="https://fonts.googleapis.com/css2?family=Satisfy&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --primary-dark: #0c0c0c;
+          --primary-light: #ffffff;
+          --accent-red: #FF4136;
+          --accent-yellow: #FFDC00;
+          --transition-slow: 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+          --transition-fast: 0.3s ease;
+          --section-spacing: 80px;
+          --board-bg: #bbada0;
+          --empty-cell: #ccc0b3;
+          --font-color-light: #f9f6f2;
+          --font-color-dark: #776e65;
+          --sudoku-border-thick: 3px solid var(--primary-dark);
+          --sudoku-border-thin: 1px solid var(--primary-dark);
+          --fixed-tile-bg: #e5e5e5;
+          --user-tile-bg: #ffffff;
+          --active-tile-bg: #c9e0ff;
+        }
+
+        body.dark-mode {
+          --sudoku-border-thick: 3px solid var(--primary-light);
+          --sudoku-border-thin: 1px solid var(--primary-light);
+          --fixed-tile-bg: #333;
+          --user-tile-bg: #222;
+          --active-tile-bg: #555;
+        }
+
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: 'Inter', sans-serif;
+          color: var(--primary-dark);
+          background-color: var(--primary-light);
+          overflow-x: hidden;
+          line-height: 1.6;
+          transition: background-color 0.5s ease;
+        }
+
+        body.dark-mode {
+          background-color: var(--primary-dark);
+          color: var(--primary-light);
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 600;
+          letter-spacing: -0.02em;
+        }
+
+        .container {
+          max-width: 1440px;
+          margin: 0 auto;
+          padding: 0 20px;
+        }
+
+        /* Navigation */
+        nav {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px 20px;
+          z-index: 1000;
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(10px);
+          transition: var(--transition-fast);
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        body.dark-mode nav {
+          background: rgba(12, 12, 12, 0.8);
+          box-shadow: 0 2px 10px rgba(255,255,255,0.1);
+        }
+
+        .nav-left {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          width: 100%;
+          justify-content: space-between;
+          padding-right: 20px;
+        }
+
+        .logo {
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 700;
+          font-size: 24px;
+          position: relative;
+          cursor: pointer;
+          text-decoration: none;
+          color: inherit;
+          white-space: nowrap;
+        }
+
+        .logo-message {
+          font-family: 'Satisfy', cursive;
+          font-size: 1.5rem;
+          font-weight: 500;
+          color: #666;
+          transition: color 0.3s ease;
+          flex-grow: 1;
+          text-align: center;
+        }
+
+        .mode-toggle {
+          width: 50px;
+          height: 24px;
+          background: #e0e0e0;
+          border-radius: 12px;
+          position: relative;
+          cursor: pointer;
+          transition: var(--transition-fast);
+          flex-shrink: 0;
+        }
+
+        body.dark-mode .mode-toggle {
+          background: #333;
+        }
+
+        .toggle-thumb {
+          width: 20px;
+          height: 20px;
+          background: var(--primary-light);
+          border-radius: 50%;
+          position: absolute;
+          top: 2px;
+          left: 2px;
+          transition: transform 0.3s ease;
+        }
+
+        body.dark-mode .toggle-thumb {
+          transform: translateX(26px);
+          background: var(--primary-dark);
+        }
+
+        /* Main Section */
+        .section-title {
+          font-size: 2.5rem;
+          margin-bottom: 30px;
+          text-align: center;
+          position: relative;
+        }
+
+        .section-title::after {
+          content: '';
+          position: absolute;
+          bottom: -10px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 80px;
+          height: 4px;
+          background: linear-gradient(90deg, var(--accent-red), var(--accent-yellow));
+          border-radius: 2px;
+        }
+
+        .game-section {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: flex-start;
+          min-height: 100vh;
+          padding: var(--section-spacing) 0;
+          padding-top: 100px;
+        }
+
+        /* Sudoku Game Container */
+        .game-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 15px;
+          width: 100%;
+          max-width: 900px;
+        }
+
+        #game-info {
+          display: flex;
+          justify-content: space-between;
+          width: 100%;
+          font-size: 1rem;
+          font-weight: 500;
+          padding: 5px 0;
+        }
+
+        #timer-display, #game-status {
+          font-family: 'Space Grotesk', sans-serif;
+          padding: 5px 10px;
+          background-color: #e0e0e0;
+          border-radius: 5px;
+          font-weight: 700;
+          min-width: 70px;
+          text-align: center;
+          font-size: 0.9rem;
+        }
+
+        body.dark-mode #timer-display,
+        body.dark-mode #game-status {
+          background-color: #333;
+        }
+
+        #sudoku-board {
+          display: grid;
+          grid-template-columns: repeat(9, 1fr);
+          grid-template-rows: repeat(9, 1fr);
+          gap: 0;
+          border-right: var(--sudoku-border-thick);
+          border-bottom: var(--sudoku-border-thick);
+          width: min(90vw, 450px);
+          height: min(90vw, 450px);
+          position: relative;
+        }
+
+        .cell {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 500;
+          font-size: 1.5em;
+          aspect-ratio: 1 / 1;
+          border-top: var(--sudoku-border-thin);
+          border-left: var(--sudoku-border-thin);
+          background-color: var(--user-tile-bg);
+          cursor: pointer;
+          color: var(--font-color-dark);
+          transition: background-color 0.1s ease;
+          position: relative;
+        }
+
+        body.dark-mode .cell {
+          color: var(--primary-light);
+        }
+
+        .cell.fixed {
+          background-color: var(--fixed-tile-bg);
+          font-weight: 700;
+          color: var(--font-color-dark);
+          cursor: not-allowed;
+        }
+
+        body.dark-mode .cell.fixed {
+          color: var(--primary-light);
+        }
+
+        .cell.active {
+          background-color: var(--active-tile-bg);
+        }
+
+        .cell.incorrect {
+          background-color: #ffcccc;
+          color: #990000;
+        }
+
+        .cell.highlight {
+          background-color: #d6eaf8;
+        }
+
+        body.dark-mode .cell.highlight {
+          background-color: #4a668b;
+        }
+
+        .cell.conflict {
+          background-color: #f8d7da;
+        }
+
+        body.dark-mode .cell.conflict {
+          background-color: #8c4250;
+        }
+
+        /* Thicker borders for 3x3 grids */
+        .cell:nth-child(3n) { border-right: var(--sudoku-border-thick); }
+        .cell:nth-child(9n) { border-right: var(--sudoku-border-thick); }
+        .cell:nth-child(n+19):nth-child(-n+27) { border-top: var(--sudoku-border-thick); }
+        .cell:nth-child(n+46):nth-child(-n+54) { border-top: var(--sudoku-border-thick); }
+
+        /* Pencil Marks */
+        .pencil-marks {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          grid-template-rows: repeat(3, 1fr);
+          width: 100%;
+          height: 100%;
+          font-size: 0.6em;
+          color: #777;
+        }
+
+        .pencil-mark-item {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-weight: 300;
+          font-family: 'Inter', sans-serif;
+        }
+
+        /* Number pad controls */
+        .controls {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          width: 100%;
+          max-width: 300px;
+        }
+
+        .number-buttons-row {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 8px;
+        }
+
+        .number-button {
+          flex-basis: calc(33.33% - 8px);
+          aspect-ratio: 1 / 1;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-size: 1.5em;
+          border: 2px solid var(--primary-dark);
+          border-radius: 8px;
+          background: #fff;
+          cursor: pointer;
+          transition: background-color 0.1s ease;
+        }
+
+        .number-button:hover {
+          background: #eee;
+        }
+
+        body.dark-mode .number-button {
+          border-color: var(--primary-light);
+          background: #333;
+          color: var(--primary-light);
+        }
+
+        body.dark-mode .number-button:hover {
+          background: #444;
+        }
+
+        .number-button.active-pencil {
+          border-color: var(--accent-red);
+          background-color: #fcebeb;
+        }
+
+        /* Buttons */
+        .button-54 {
+          font-family: "Open Sans", sans-serif;
+          font-size: 16px;
+          letter-spacing: 2px;
+          text-decoration: none;
+          text-transform: uppercase;
+          color: #000;
+          cursor: pointer;
+          border: 3px solid;
+          padding: 0.25em 0.5em;
+          box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px;
+          position: relative;
+          user-select: none;
+          -webkit-user-select: none;
+          touch-action: manipulation;
+          background-color: transparent;
+          white-space: nowrap;
+          flex-grow: 1;
+          text-align: center;
+        }
+
+        body.dark-mode .button-54 {
+          color: #fff;
+          border-color: #fff;
+          box-shadow: 1px 1px 0px 0px #fff, 2px 2px 0px 0px #fff, 3px 3px 0px 0px #fff, 4px 4px 0px 0px #fff, 5px 5px 0px 0px #fff;
+        }
+
+        .button-54:active {
+          box-shadow: 0px 0px 0px 0px;
+          top: 5px;
+          left: 5px;
+        }
+
+        @media (min-width: 768px) {
+          .button-54 {
+            padding: 0.25em 0.75em;
+          }
+        }
+
+        /* Custom Message Box */
+        #message-box {
+          background-color: #333;
+          color: #fff;
+          padding: 15px;
+          border-radius: 8px;
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          text-align: center;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          z-index: 10000;
+          display: none;
+          max-width: 80%;
+        }
+
+        #message-box button {
+          margin-top: 10px;
+          padding: 8px 16px;
+          background: linear-gradient(90deg, var(--accent-red), var(--accent-yellow));
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+        }
+
+        .difficulty-buttons {
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+          margin-top: 10px;
+        }
+
+        .difficulty-button {
+          padding: 8px 16px;
+          border: 2px solid var(--primary-dark);
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 1em;
+          background-color: transparent;
+          transition: all 0.2s ease;
+        }
+
+        body.dark-mode .difficulty-button {
+          border-color: var(--primary-light);
+        }
+
+        .difficulty-button.active {
+          background-color: var(--accent-red);
+          color: var(--primary-light);
+          border-color: var(--accent-red);
+        }
+    </style>
+</head>
+<body>
+<nav>
+    <div class="nav-left">
+        <a href="index.html" class="logo">
+            WaryWEB
+        </a>
+        <span class="logo-message">Game On</span>
+    </div>
+    <div class="nav-actions">
+        <div class="mode-toggle" id="modeToggle">
+            <div class="toggle-thumb"></div>
+        </div>
+    </div>
+</nav>
+
+<section id="game-section" class="game-section">
+    <div class="container">
+        <h2 class="section-title">Sudoku</h2>
+        <div class="game-container">
+            <div id="game-info">
+                <div id="timer-display">Time: 00:00</div>
+                <div id="game-status"></div>
+            </div>
+            <div id="sudoku-board"></div>
+            <div class="controls">
+                <div class="number-buttons-row" id="number-buttons">
+                    <button class="number-button" data-value="1">1</button>
+                    <button class="number-button" data-value="2">2</button>
+                    <button class="number-button" data-value="3">3</button>
+                    <button class="number-button" data-value="4">4</button>
+                    <button class="number-button" data-value="5">5</button>
+                    <button class="number-button" data-value="6">6</button>
+                    <button class="number-button" data-value="7">7</button>
+                    <button class="number-button" data-value="8">8</button>
+                    <button class="number-button" data-value="9">9</button>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="button-54" id="pencil-button">Pencil</button>
+                    <button class="number-button" data-value="0" style="flex-grow: 1;">Clear</button>
+                </div>
+            </div>
+            <div class="game-controls">
+                <button class="button-54" role="button" id="check-button">Check Solution</button>
+                <button class="button-54" role="button" id="reset-button">New Game</button>
+            </div>
+            <div class="difficulty-buttons">
+                <button class="difficulty-button active" data-difficulty="easy">Easy</button>
+                <button class="difficulty-button" data-difficulty="medium">Medium</button>
+                <button class="difficulty-button" data-difficulty="hard">Hard</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Custom Message Box -->
+<div id="message-box">
+    <p id="message-content"></p>
+    <button id="close-message">OK</button>
+</div>
+
+<script>
+    // DOM Elements
+    const modeToggle = document.getElementById('modeToggle');
+    const sudokuBoard = document.getElementById('sudoku-board');
+    const timerDisplay = document.getElementById('timer-display');
+    const gameStatus = document.getElementById('game-status');
+    const numberButtons = document.getElementById('number-buttons');
+    const checkButton = document.getElementById('check-button');
+    const resetButton = document.getElementById('reset-button');
+    const messageBox = document.getElementById('message-box');
+    const messageContent = document.getElementById('message-content');
+    const closeMessageButton = document.getElementById('close-message');
+    const pencilButton = document.getElementById('pencil-button');
+    const difficultyButtons = document.querySelectorAll('.difficulty-button');
+
+    // Game Puzzles
+    const puzzles = {
+      easy: [
+        {
+          initial: [
+            [5, 3, 0, 0, 7, 0, 0, 0, 0],
+            [6, 0, 0, 1, 9, 5, 0, 0, 0],
+            [0, 9, 8, 0, 0, 0, 0, 6, 0],
+            [8, 0, 0, 0, 6, 0, 0, 0, 3],
+            [4, 0, 0, 8, 0, 3, 0, 0, 1],
+            [7, 0, 0, 0, 2, 0, 0, 0, 6],
+            [0, 6, 0, 0, 0, 0, 2, 8, 0],
+            [0, 0, 0, 4, 1, 9, 0, 0, 5],
+            [0, 0, 0, 0, 8, 0, 0, 7, 9]
+          ],
+          solution: [
+            [5, 3, 4, 6, 7, 8, 9, 1, 2],
+            [6, 7, 2, 1, 9, 5, 3, 4, 8],
+            [1, 9, 8, 3, 4, 2, 5, 6, 7],
+            [8, 5, 9, 7, 6, 1, 4, 2, 3],
+            [4, 2, 6, 8, 5, 3, 7, 9, 1],
+            [7, 1, 3, 9, 2, 4, 8, 5, 6],
+            [9, 6, 1, 5, 3, 7, 2, 8, 4],
+            [2, 8, 7, 4, 1, 9, 6, 3, 5],
+            [3, 4, 5, 2, 8, 6, 1, 7, 9]
+          ]
+        }
+      ],
+      medium: [
+        {
+          initial: [
+            [0, 0, 0, 2, 6, 0, 7, 0, 1],
+            [6, 8, 0, 0, 7, 0, 0, 9, 0],
+            [1, 9, 0, 0, 0, 4, 5, 0, 0],
+            [8, 2, 0, 1, 0, 0, 0, 4, 0],
+            [0, 0, 4, 6, 0, 2, 9, 0, 0],
+            [0, 5, 0, 0, 0, 3, 0, 2, 8],
+            [0, 0, 9, 3, 0, 0, 0, 7, 4],
+            [0, 4, 0, 0, 5, 0, 0, 3, 6],
+            [7, 0, 3, 0, 1, 8, 0, 0, 0]
+          ],
+          solution: [
+            [4, 3, 5, 2, 6, 9, 7, 8, 1],
+            [6, 8, 2, 5, 7, 1, 4, 9, 3],
+            [1, 9, 7, 8, 3, 4, 5, 6, 2],
+            [8, 2, 6, 1, 9, 5, 3, 4, 7],
+            [3, 7, 4, 6, 8, 2, 9, 1, 5],
+            [9, 5, 1, 7, 4, 3, 6, 2, 8],
+            [5, 1, 9, 3, 2, 6, 8, 7, 4],
+            [2, 4, 8, 9, 5, 7, 1, 3, 6],
+            [7, 6, 3, 4, 1, 8, 2, 5, 9]
+          ]
+        }
+      ],
+      hard: [
+        {
+          initial: [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 3, 0, 8, 5],
+            [0, 0, 1, 0, 2, 0, 0, 0, 0],
+            [0, 0, 0, 5, 0, 7, 0, 0, 0],
+            [0, 0, 4, 0, 0, 0, 1, 0, 0],
+            [0, 9, 0, 0, 0, 0, 0, 0, 0],
+            [5, 0, 0, 0, 0, 0, 0, 7, 3],
+            [0, 0, 2, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 4, 0, 0, 0, 9]
+          ],
+          solution: [
+            [2, 3, 5, 4, 6, 8, 7, 9, 1],
+            [4, 6, 9, 1, 7, 3, 2, 8, 5],
+            [7, 8, 1, 9, 2, 5, 6, 3, 4],
+            [1, 2, 8, 5, 9, 7, 3, 4, 6],
+            [6, 5, 4, 3, 8, 2, 1, 9, 7],
+            [3, 9, 7, 6, 1, 4, 5, 2, 8],
+            [5, 1, 6, 2, 4, 9, 8, 7, 3],
+            [9, 4, 2, 8, 3, 1, 7, 5, 6],
+            [8, 7, 3, 5, 4, 6, 9, 1, 2]
+          ]
+        }
+      ]
+    };
+
+    // Game State
+    let selectedCell = null;
+    let timerInterval;
+    let seconds = 0;
+    let currentDifficulty = 'easy';
+    let currentPuzzle;
+    let userBoard;
+    let pencilMarks;
+    let isPencilMode = false;
+
+    // Dark Mode Toggle
+    modeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+    });
+
+    // Message Box
+    const showMessage = (message) => {
+      messageContent.textContent = message;
+      messageBox.style.display = 'block';
+    };
+
+    closeMessageButton.addEventListener('click', () => {
+      messageBox.style.display = 'none';
+    });
+
+    // Timer functions
+    const startTimer = () => {
+      clearInterval(timerInterval);
+      seconds = 0;
+      timerInterval = setInterval(() => {
+        seconds++;
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        timerDisplay.textContent = `Time: ${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+      }, 1000);
+    };
+
+    const stopTimer = () => {
+      clearInterval(timerInterval);
+    };
+
+    // Game Initialization
+    const initGame = (difficulty = 'easy') => {
+      currentDifficulty = difficulty;
+      const puzzleList = puzzles[currentDifficulty];
+      currentPuzzle = puzzleList[Math.floor(Math.random() * puzzleList.length)];
+
+      userBoard = JSON.parse(JSON.stringify(currentPuzzle.initial));
+      pencilMarks = Array(9).fill(0).map(() => Array(9).fill(0).map(() => []));
+
+      renderBoard();
+      startTimer();
+      gameStatus.textContent = '';
+
+      // De-activate pencil mode on new game
+      isPencilMode = false;
+      pencilButton.classList.remove('active-pencil');
+
+      // Highlight active difficulty button
+      difficultyButtons.forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`.difficulty-button[data-difficulty="${difficulty}"]`).classList.add('active');
+    };
+
+    const renderBoard = () => {
+      sudokuBoard.innerHTML = '';
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          const cell = document.createElement('div');
+          cell.classList.add('cell');
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+
+          // Render fixed numbers
+          if (currentPuzzle.initial[r][c] !== 0) {
+            cell.textContent = currentPuzzle.initial[r][c];
+            cell.classList.add('fixed');
+          } else if (userBoard[r][c] !== 0) {
+            // Render user-entered numbers
+            cell.textContent = userBoard[r][c];
+          } else {
+            // Render pencil marks
+            const marks = pencilMarks[r][c];
+            if (marks.length > 0) {
+              const marksContainer = document.createElement('div');
+              marksContainer.classList.add('pencil-marks');
+              for (let i = 1; i <= 9; i++) {
+                const markItem = document.createElement('div');
+                markItem.classList.add('pencil-mark-item');
+                if (marks.includes(i)) {
+                  markItem.textContent = i;
+                }
+                marksContainer.appendChild(markItem);
+              }
+              cell.appendChild(marksContainer);
+            }
+          }
+
+          cell.addEventListener('click', () => {
+            if (currentPuzzle.initial[r][c] === 0) {
+              if (selectedCell) {
+                selectedCell.classList.remove('active');
+              }
+              selectedCell = cell;
+              cell.classList.add('active');
+              checkCellConflicts();
+            }
+          });
+
+          sudokuBoard.appendChild(cell);
+        }
+      }
+    };
+
+    // Check for conflicts and highlight
+    const checkCellConflicts = () => {
+      // Clear previous highlighting
+      document.querySelectorAll('.highlight, .conflict').forEach(el => el.classList.remove('highlight', 'conflict'));
+
+      if (!selectedCell) return;
+
+      const r = parseInt(selectedCell.dataset.row);
+      const c = parseInt(selectedCell.dataset.col);
+      const value = userBoard[r][c];
+
+      // Highlight row, column, and block
+      for (let i = 0; i < 9; i++) {
+        sudokuBoard.children[r * 9 + i].classList.add('highlight');
+        sudokuBoard.children[i * 9 + c].classList.add('highlight');
+      }
+      const startRow = Math.floor(r / 3) * 3;
+      const startCol = Math.floor(c / 3) * 3;
+      for (let i = startRow; i < startRow + 3; i++) {
+        for (let j = startCol; j < startCol + 3; j++) {
+          sudokuBoard.children[i * 9 + j].classList.add('highlight');
+        }
+      }
+    };
+
+    // Handle number input
+    const handleNumberInput = (value) => {
+      if (!selectedCell) return;
+
+      const row = parseInt(selectedCell.dataset.row);
+      const col = parseInt(selectedCell.dataset.col);
+
+      if (currentPuzzle.initial[row][col] === 0) {
+        if (isPencilMode) {
+          // Toggle pencil mark
+          const marks = pencilMarks[row][col];
+          const markIndex = marks.indexOf(value);
+          if (markIndex > -1) {
+            marks.splice(markIndex, 1);
+          } else if (value > 0) {
+            marks.push(value);
+            marks.sort();
+          }
+          // Clear value if pencil marks are added
+          userBoard[row][col] = 0;
+        } else {
+          // Clear pencil marks
+          pencilMarks[row][col] = [];
+          // Set number
+          userBoard[row][col] = value;
+        }
+
+        renderBoard();
+
+        // Instant error highlighting
+        if (value > 0) {
+          const isCorrect = userBoard[row][col] === currentPuzzle.solution[row][col];
+          if (!isCorrect) {
+            selectedCell.classList.add('incorrect');
+            gameStatus.textContent = 'Incorrect!';
+          } else {
+            selectedCell.classList.remove('incorrect');
+            gameStatus.textContent = '';
+          }
+        } else {
+          selectedCell.classList.remove('incorrect');
+          gameStatus.textContent = '';
+        }
+      }
+
+      selectedCell.classList.remove('active');
+      selectedCell = null;
+    };
+
+    // Check Solution
+    const checkSolution = () => {
+      let isCorrect = true;
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          const cell = sudokuBoard.children[r * 9 + c];
+          if (userBoard[r][c] !== 0 && userBoard[r][c] !== currentPuzzle.solution[r][c]) {
+            cell.classList.add('incorrect');
+            isCorrect = false;
+          } else {
+            cell.classList.remove('incorrect');
+          }
+        }
+      }
+
+      if (isCorrect) {
+        stopTimer();
+        showMessage('Congratulations! You solved the puzzle!');
+        gameStatus.textContent = 'Solved!';
+      } else {
+        gameStatus.textContent = 'Errors found. Keep trying!';
+      }
+    };
+
+    // Event Listeners for UI
+    numberButtons.addEventListener('click', (e) => {
+      if (e.target.classList.contains('number-button')) {
+        const value = parseInt(e.target.dataset.value);
+        handleNumberInput(value);
+      }
+    });
+
+    document.querySelector('.controls button[data-value="0"]').addEventListener('click', () => {
+      handleNumberInput(0);
+    });
+
+    pencilButton.addEventListener('click', () => {
+      isPencilMode = !isPencilMode;
+      pencilButton.classList.toggle('active-pencil', isPencilMode);
+    });
+
+    checkButton.addEventListener('click', checkSolution);
+    resetButton.addEventListener('click', () => {
+      initGame(currentDifficulty);
+    });
+
+    difficultyButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const newDifficulty = button.dataset.difficulty;
+        initGame(newDifficulty);
+      });
+    });
+
+    // Initial call
+    initGame();
+</script>
+</body>
+</html>

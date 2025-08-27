@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE: html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -203,9 +203,9 @@
       border-bottom-color: #eee;
       background-color: #ccc;
       box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2);
-      width: 90%;
-      max-width: 500px;
-      aspect-ratio: 1 / 1;
+      /* Use responsive dimensions to prevent cutting off on smaller screens */
+      width: min(80vw, 450px);
+      height: min(80vw, 450px);
     }
 
     .cell {
@@ -222,7 +222,8 @@
       user-select: none;
       -webkit-user-select: none;
       transition: background-color 0.1s ease;
-      aspect-ratio: 1 / 1; /* Ensures cells are always square */
+      aspect-ratio: 1 / 1;
+      font-size: 50%;
     }
 
     .cell.revealed {
@@ -234,12 +235,7 @@
     }
 
     .cell.revealed.number {
-      font-size: calc(50vw / var(--cols) * 0.5); /* Dynamic font size based on cols */
-      max-width: 100%;
-      max-height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+        font-size: 1em;
     }
 
     .cell.revealed.mine {
@@ -249,8 +245,8 @@
     }
 
     .cell.flag::before {
-      content: '🚩';
-      font-size: calc(50vw / var(--cols) * 0.5); /* Dynamic font size for flag */
+      content: '�';
+      font-size: 1em;
     }
 
     .cell.number-1 { color: #0000FF; }
@@ -406,7 +402,7 @@
         <div id="timer">Time: 0</div>
       </div>
       <div id="game-board"></div>
-      <div class="game-controls">
+      <div class="game-controls" id="game-controls">
         <div class="mode-select-buttons button-group-mode">
           <button class="button-54 active-mode" role="button" id="reveal-mode">Reveal Mode</button>
           <button class="button-54" role="button" id="flag-mode">Flag Mode</button>
@@ -440,6 +436,7 @@
   const messageContent = document.getElementById('message-content');
   const closeMessageButton = document.getElementById('close-message');
   const modeButtons = document.querySelectorAll('[data-mode]');
+  const gameControls = document.getElementById('game-controls');
 
   // Game State
   let board;
@@ -493,6 +490,10 @@
     // Reset UI state
     revealModeButton.classList.add('active-mode');
     flagModeButton.classList.remove('active-mode');
+
+    // Adjust board size based on mode
+    gameBoard.style.gridTemplateRows = `repeat(${rows}, minmax(0, 1fr))`;
+    gameBoard.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
 
     // Reset Timer
     clearInterval(timerInterval);
@@ -559,9 +560,6 @@
 
   const renderBoard = () => {
     gameBoard.innerHTML = '';
-    gameBoard.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-    // Update CSS variable to ensure correct scaling
-    gameBoard.style.setProperty('--cols', cols);
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const cell = document.createElement('div');
@@ -569,6 +567,29 @@
         cell.dataset.row = r;
         cell.dataset.col = c;
         cell.addEventListener('click', () => handleTap(r, c));
+        // Add touch event listeners for mobile
+        cell.addEventListener('touchstart', (e) => {
+          e.preventDefault(); // Prevent default touch behavior
+          handleTap(r, c);
+        });
+        cell.addEventListener('contextmenu', (e) => {
+          e.preventDefault(); // Prevent context menu on right-click
+          // Simulate a flag mode tap on right click
+          if (!isFlagMode) {
+              isFlagMode = true;
+              flagModeButton.classList.add('active-mode');
+              revealModeButton.classList.remove('active-mode');
+              handleTap(r,c);
+              // Toggle back to reveal mode after a short delay
+              setTimeout(() => {
+                isFlagMode = false;
+                revealModeButton.classList.add('active-mode');
+                flagModeButton.classList.remove('active-mode');
+              }, 50);
+          } else {
+             handleTap(r, c);
+          }
+        });
         gameBoard.appendChild(cell);
       }
     }
@@ -667,7 +688,7 @@
     if (won) {
       showMessage(`You won in ${timeElapsed} seconds! 🎉`);
     } else {
-      showMessage('Game Over! You hit a mine. �', () => {
+      showMessage('Game Over! You hit a mine. 💣', () => {
         // Auto-restart the game after the user closes the message
         initGame(currentMode);
       });
@@ -701,4 +722,3 @@
 </script>
 </body>
 </html>
-�

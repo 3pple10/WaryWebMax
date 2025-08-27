@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaryWEB | Word Puzzle</title>
+  <link href="https://fonts.googleapis.com/css2?family=Satisfy&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+        --primary-dark: #0c0c0c;
+        --primary-light: #ffffff;
+        --accent-red: #FF4136;
+        --accent-yellow: #FFDC00;
+        --transition-slow: 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        --transition-fast: 0.3s ease;
+        --section-spacing: 80px;
+        --board-bg: #bbada0;
+        --empty-cell: #ccc0b3;
+        --font-color-light: #f9f6f2;
+        --font-color-dark: #776e65;
+        --fixed-tile-bg: #e5e5e5;
+        --user-tile-bg: #ffffff;
+        --active-tile-bg: #c9e0ff;
+        --highlight-bg: #d6eaf8;
+    }
+
+    body.dark-mode {
+        --primary-dark: #0c0c0c;
+        --primary-light: #ffffff;
+        --fixed-tile-bg: #333;
+        --user-tile-bg: #222;
+        --active-tile-bg: #555;
+        --highlight-bg: #4a668b;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        color: var(--primary-dark);
+        background-color: var(--primary-light);
+        overflow-x: hidden;
+        line-height: 1.6;
+        transition: background-color 0.5s ease;
+    }
+
+    body.dark-mode {
+        background-color: var(--primary-dark);
+        color: var(--primary-light);
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+    }
+
+    .container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* Navigation */
+    nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        transition: var(--transition-fast);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    body.dark-mode nav {
+        background: rgba(12, 12, 12, 0.8);
+        box-shadow: 0 2px 10px rgba(255,255,255,0.1);
+    }
+
+    .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        justify-content: space-between;
+        padding-right: 20px;
+    }
+
+    .logo {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 24px;
+        position: relative;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        white-space: nowrap;
+    }
+
+    .logo-message {
+        font-family: 'Satisfy', cursive;
+        font-size: 1.5rem;
+        font-weight: 500;
+        color: #666;
+        transition: color 0.3s ease;
+        flex-grow: 1;
+        text-align: center;
+    }
+
+    .mode-toggle {
+        width: 50px;
+        height: 24px;
+        background: #e0e0e0;
+        border-radius: 12px;
+        position: relative;
+        cursor: pointer;
+        transition: var(--transition-fast);
+        flex-shrink: 0;
+    }
+
+    body.dark-mode .mode-toggle {
+        background: #333;
+    }
+
+    .toggle-thumb {
+        width: 20px;
+        height: 20px;
+        background: var(--primary-light);
+        border-radius: 50%;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.3s ease;
+    }
+
+    body.dark-mode .toggle-thumb {
+        transform: translateX(26px);
+        background: var(--primary-dark);
+    }
+
+    /* Main Section */
+    .section-title {
+        font-size: 2.5rem;
+        margin-bottom: 30px;
+        text-align: center;
+        position: relative;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-red), var(--accent-yellow));
+        border-radius: 2px;
+    }
+
+    .game-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 100vh;
+        padding: var(--section-spacing) 0;
+        padding-top: 100px;
+    }
+
+    /* Game Container */
+    .game-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 25px;
+        width: 100%;
+        max-width: 500px;
+        padding: 20px;
+        background-color: var(--user-tile-bg);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    body.dark-mode .game-container {
+         background-color: #222;
+    }
+
+    .puzzle-content {
+        text-align: center;
+        padding: 20px;
+    }
+
+    .puzzle-content h3 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
+
+    .puzzle-content p {
+        font-size: 1.1rem;
+        color: #555;
+        margin-bottom: 20px;
+    }
+
+    body.dark-mode .puzzle-content p {
+        color: #ccc;
+    }
+
+    #puzzle-input {
+        width: 100%;
+        padding: 10px 15px;
+        font-size: 1.2em;
+        text-align: center;
+        text-transform: uppercase;
+        border: 2px solid var(--primary-dark);
+        border-radius: 8px;
+        outline: none;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        background-color: transparent;
+        color: inherit;
+    }
+
+    body.dark-mode #puzzle-input {
+        border-color: var(--primary-light);
+    }
+
+    .button-54 {
+        font-family: "Open Sans", sans-serif;
+        font-size: 16px;
+        letter-spacing: 2px;
+        text-decoration: none;
+        text-transform: uppercase;
+        color: #000;
+        cursor: pointer;
+        border: 3px solid;
+        padding: 0.25em 0.5em;
+        box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px;
+        position: relative;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        background-color: transparent;
+        white-space: nowrap;
+        flex-grow: 1;
+        text-align: center;
+        margin-top: 15px;
+    }
+
+    body.dark-mode .button-54 {
+        color: #fff;
+        border-color: #fff;
+        box-shadow: 1px 1px 0px 0px #fff, 2px 2px 0px 0px #fff, 3px 3px 0px 0px #fff, 4px 4px 0px 0px #fff, 5px 5px 0px 0px #fff;
+    }
+
+    .button-54:active {
+        box-shadow: 0px 0px 0px 0px;
+        top: 5px;
+        left: 5px;
+    }
+
+    @media (min-width: 768px) {
+        .button-54 {
+            padding: 0.25em 0.75em;
+        }
+    }
+
+    #result-message {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #FF4136;
+        margin-top: 10px;
+    }
+
+    /* Custom Message Box */
+    #message-box {
+        background-color: #333;
+        color: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        z-index: 10000;
+        display: none;
+        max-width: 80%;
+    }
+
+    #message-box button {
+        margin-top: 10px;
+        padding: 8px 16px;
+        background: linear-gradient(90deg, var(--accent-red), var(--accent-yellow));
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-left">
+    <a href="index.html" class="logo">
+      WaryWEB
+    </a>
+    <span class="logo-message">Solve the Puzzle</span>
+  </div>
+  <div class="nav-actions">
+    <div class="mode-toggle" id="modeToggle">
+      <div class="toggle-thumb"></div>
+    </div>
+  </div>
+</nav>
+
+<section id="game-section" class="game-section">
+  <div class="container">
+    <h2 class="section-title">Word Puzzle</h2>
+    <div class="game-container">
+      <div class="puzzle-content">
+        <h3>Unscramble the letters to find the hidden word!</h3>
+        <p>Clue: This word has 5 letters or more.</p>
+        <p id="scrambled-word" style="font-size: 1.5rem; letter-spacing: 0.5rem; font-weight: 700;"></p>
+      </div>
+
+      <input type="text" id="puzzle-input" placeholder="Enter your guess">
+      <button class="button-54" role="button" id="check-button">Check Solution</button>
+      <p id="result-message"></p>
+    </div>
+  </div>
+</section>
+
+<!-- Custom Message Box -->
+<div id="message-box">
+  <p id="message-content">Congratulations! You solved the puzzle!</p>
+  <button id="close-message">OK</button>
+</div>
+
+<script>
+  // DOM Elements
+  const modeToggle = document.getElementById('modeToggle');
+  const puzzleInput = document.getElementById('puzzle-input');
+  const checkButton = document.getElementById('check-button');
+  const resultMessage = document.getElementById('result-message');
+  const messageBox = document.getElementById('message-box');
+  const messageContent = document.getElementById('message-content');
+  const closeMessageButton = document.getElementById('close-message');
+  const scrambledWordDisplay = document.getElementById('scrambled-word');
+
+  // A list of words to choose from
+  const wordList = [
+  "APPLE","BRAIN","EARTH","GRAPE","HOUSE","LIGHT","MUSIC","PLANT","SMILE","TRAIN",
+  "WATER","WHEEL","WRITE","STORM","TABLE","TIGER","WORLD","YOUTH","GHOST","CHAIR",
+  "DREAM","FINAL","POWER","GUARD","ROUTE","BRAVE","EQUAL","FORCE","PANIC","STUDY",
+  "ANGEL","BEACH","CLOUD","DANCE","ENEMY","FAITH","GIANT","HAPPY","INNER","JOKER",
+  "KNIFE","LEMON","MAGIC","NIGHT","OCEAN","PRIDE","QUIET","RIVER","SOLAR","TRUST",
+  "UNITY","VIVID","WORRY","XENON","YIELD","ZEBRA","ACTOR","BEAST","CANDY","DELTA",
+  "EVENT","FROST","GLASS","HEART","IDEAL","JUDGE","KNOCK","LOVER","MARCH","NOBLE",
+  "OPERA","PEARL","QUEST","RANCH","SHINE","THEME","URBAN","VOICE","WATCH","YOUNG",
+  "ALERT","BLOOM","CIVIL","DRAMA","EAGER","FAIRY","GRAND","HUMAN","IMAGE","JUICE",
+  "KINGS","LOFTY","MONEY","NORTH","OLDER","PRIME","QUICK","ROYAL","SOUND","TOWER",
+  "USAGE","VISIT","WISER","YEAST","ZONED","ALONE","BLOCK","CROWN","DEMON","EXACT",
+  "FEAST","GLORY","HONOR","ISSUE","JELLY","KITES","LEARN","MORAL","NURSE","OPENS",
+  "PLAZA","QUEST","REACH","STAGE","TEACH","UNITY","VALUE","WORTH","XTRAS","YEARN",
+  "ABOVE","BROOK","CYCLE","DEPTH","EAGLE","FLOUR","GRAPE","HONEY","IDEAS","JUMPY",
+  "KNEEL","LASER","MIGHT","NOVEL","OASIS","PASTE","QUOTA","RANGE","SMART","TREND",
+  "USERS","VIDEO","WORMS","YOUTH","ZONES","ACTED","BOOST","CHEER","DRINK","EARLY",
+  "FLAME","GRACE","HUMOR","INPUT","JUICY","KNACK","LEMON","MOTTO","NERVE","ONION",
+  "PAINT","QUIRK","REBEL","SLEEP","TOKEN","UNITE","VENOM","WAGON","YOKES","ZESTY",
+  "ARISE","BLAST","COVER","DEPOT","ELITE","FABLE","GIANT","HAIRY","ICONS","JOLLY",
+  "KARMA","LAYER","MAJOR","NIGHT","OPENS","PAUSE","QUILL","RIDER","SWEET","TRIAL",
+  "UNTIL","VISOR","WHOLE","YARDS","ZONER","AGREE","BRING","CRASH","DOZEN","EMAIL",
+  "FLAIR","GIANT","HURRY","INPUT","JOKES","KNITS","LEVEL","MARCH","NEVER","OPTIC",
+  "PLAIN","QUILT","RIDGE","SHARE","TASTE","ULTRA","VOTER","WOMEN","YIELD","ZIPPY",
+  "ANGRY","BLEND","CLAIM","DROPS","EMPTY","FRESH","GRIND","HABIT","INDEX","JUMPS",
+  "KICKS","LEARN","MOUSE","NOISE","OFFER","PRESS","QUARK","ROUND","SPLIT","TITLE",
+  "UNION","VIVID","WHOSE","YOUTH","ZONES","ACTOR","BRAVE","CHESS","DREAM","EQUAL",
+  "FIGHT","GLASS","HAPPY","INNER","JOKER","KNIFE","LOVER","MAGIC","NOBLE","OCEAN",
+  "POWER","QUIET","RIVER","SOLAR","TABLE","UNITY","VOICE","WORRY","XENON","ZEBRA",
+  "APPLY","BROWN","CHILL","DEPTH","ENTRY","FAVOR","GLOBE","HEART","IDEAL","JELLY",
+  "KNEES","LEMON","MIGHT","NURSE","OPENED","PRIME","QUEEN","RIGHT","STONE","TRUST",
+  "UNDER","VALUE","WOMAN","YEAST","ZONED","AGENT","BRAND","CLOSE","DRIVE","ENJOY",
+  "FLOOD","GRAND","HONOR","ISSUE","JUICE","KITES","LIGHT","MORAL","OASIS","PASTE",
+  "QUIET","ROYAL","SHINE","TREES","URBAN","VISIT","WORTH","YEARN","ZESTS","ABOVE",
+  "BLACK","CLEAR","DELAY","EARTH","FLUTE","GAMES","HUMAN","IDEAS","JOKES","KARMA",
+  "LARGE","MONEY","NORTH","OLDER","PEACE","QUEST","RANCH","SWEET","TEACH","UNITY",
+  "VALUE","WISER","YOUTH","ZONES","ALERT","BOOST","CRISP","DAILY","EAGER","FROST",
+  "GRACE","HUMOR","ISSUE","JUICY","KNOWN","LEARN","MORAL","NEVER","OPTIC","PLAZA",
+  "QUEEN","RIDER","SOUND","TREND","USERS","VISOR","WHOLE","YARDS","ZONED","APPLE",
+  "BRAIN","CRUSH","DEPOT","ELDER","FABLE","GIANT","HONEY","INNER","JOKER","KARMA",
+  "LEMON","MIGHT","NOBLE","OASIS","POWER","QUIRK","ROUND","STONE","TOKEN","UNITE",
+  "VENOM","WOMEN","YIELD","ZONED","ANGEL","BRING","CLAIM","DRINK","EMPTY","FRESH",
+  "GAMES","HURRY","IDEAL","JELLY","KNIFE","LEVEL","MAGIC","NURSE","ONION","PRESS",
+  "QUIET","ROYAL","SHARE","TREES","UNTIL","VIDEO","WORMS","YEAST","ZESTY"
+];
+
+  let solution = '';
+
+  // Function to scramble a word
+  const scrambleWord = (word) => {
+      const a = word.split("");
+      for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a.join("-");
+  };
+
+  // Function to set up a new puzzle
+  const setupPuzzle = () => {
+      // Choose a random word from the list
+      const randomIndex = Math.floor(Math.random() * wordList.length);
+      solution = wordList[randomIndex];
+
+      // Scramble the solution and display it
+      const scrambled = scrambleWord(solution);
+      scrambledWordDisplay.textContent = scrambled;
+      puzzleInput.value = ''; // Clear input field
+      resultMessage.textContent = ''; // Clear message
+  };
+
+  // Dark Mode Toggle
+  modeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+  });
+
+  // Message Box
+  const showMessage = (message) => {
+    messageContent.textContent = message;
+    messageBox.style.display = 'block';
+  };
+
+  closeMessageButton.addEventListener('click', () => {
+    messageBox.style.display = 'none';
+    setupPuzzle(); // Start a new puzzle after closing the message
+  });
+
+  // Handle Check Button click
+  checkButton.addEventListener('click', () => {
+      const userGuess = puzzleInput.value.trim().toUpperCase();
+      if (userGuess === solution) {
+          showMessage('Congratulations! You solved the puzzle!');
+      } else {
+          resultMessage.textContent = 'Incorrect guess. Try again!';
+      }
+  });
+
+  // Optional: Allow the user to press 'Enter' key to check
+  puzzleInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+          checkButton.click();
+      }
+  });
+
+  // Initial setup when the page loads
+  window.onload = setupPuzzle;
+</script>
+</body>
+</html>
