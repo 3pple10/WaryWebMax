@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaryWEB | File Utilities</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Satisfy&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <!-- jspdf for Image to PDF conversion -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Tesseract.js for OCR -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+  <!-- JSZip for ZIP/Unzip -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <!-- FileSaver.js for downloading blobs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <style>
+    :root {
+        --primary-dark: #0c0c0c;
+        --primary-light: #ffffff;
+        --accent-red: #FF4136;
+        --accent-yellow: #FFDC00;
+        --transition-slow: 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        --transition-fast: 0.3s ease;
+        --section-spacing: 80px;
+        --board-bg: #bbada0;
+        --empty-cell: #ccc0b3;
+        --font-color-light: #f9f6f2;
+        --font-color-dark: #776e65;
+        --fixed-tile-bg: #e5e5e5;
+        --user-tile-bg: #ffffff;
+        --active-tile-bg: #c9e0ff;
+        --highlight-bg: #d6eaf8;
+
+        /* Custom button colors */
+        --button-gradient: linear-gradient(45deg, #0ce39a, #69007f, #fc0987);
+        --button-bg-dark: #272727;
+        --button-text-light: #fff;
+
+        /* Download button colors */
+        --main-focus: #2d8cf0;
+        --font-color-dl: #dedede;
+        --bg-color-sub-dl: #222;
+        --bg-color-dl: #323232;
+        --main-color-dl: #dedede;
+    }
+
+    body.dark-mode {
+        --primary-dark: #0c0c0c;
+        --primary-light: #ffffff;
+        --fixed-tile-bg: #333;
+        --user-tile-bg: #222;
+        --active-tile-bg: #555;
+        --highlight-bg: #4a668b;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        color: var(--primary-dark);
+        background-color: var(--primary-light);
+        overflow-x: hidden;
+        line-height: 1.6;
+        transition: background-color 0.5s ease;
+    }
+
+    body.dark-mode {
+        background-color: var(--primary-dark);
+        color: var(--primary-light);
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+    }
+
+    .container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* Navigation */
+    nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 16px 20px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        transition: var(--transition-fast);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    body.dark-mode nav {
+        background: rgba(12, 12, 12, 0.8);
+        box-shadow: 0 2px 10px rgba(255,255,255,0.1);
+    }
+
+    .nav-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+
+    .logo {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 24px;
+        position: relative;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        white-space: nowrap;
+    }
+
+    .logo-message {
+        font-family: 'Satisfy', cursive;
+        font-weight: 500;
+        color: #666;
+        transition: color 0.3s ease;
+        flex-grow: 1;
+        text-align: center;
+    }
+
+    body.dark-mode .logo-message {
+      color: #aaa;
+    }
+
+    .mode-toggle {
+        width: 50px;
+        height: 24px;
+        background: #e0e0e0;
+        border-radius: 12px;
+        position: relative;
+        cursor: pointer;
+        transition: var(--transition-fast);
+        flex-shrink: 0;
+    }
+
+    body.dark-mode .mode-toggle {
+        background: #333;
+    }
+
+    .toggle-thumb {
+        width: 20px;
+        height: 20px;
+        background: var(--primary-light);
+        border-radius: 50%;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.3s ease;
+    }
+
+    body.dark-mode .toggle-thumb {
+        transform: translateX(26px);
+        background: var(--primary-dark);
+    }
+
+    .nav-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    /* Main Section */
+    .section-title {
+        font-size: 2.5rem;
+        margin-bottom: 30px;
+        text-align: center;
+        position: relative;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-red), var(--accent-yellow));
+        border-radius: 2px;
+    }
+
+    .game-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 100vh;
+        padding: var(--section-spacing) 0;
+        padding-top: 200px; /* Adjusted padding for new nav links and spacing */
+    }
+
+    /* File Utilities Specific Styles */
+    .file-utilities-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 25px;
+        width: 100%;
+        max-width: 1200px;
+        padding: 20px;
+        background-color: var(--user-tile-bg);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    body.dark-mode .file-utilities-container {
+        background-color: #222;
+    }
+
+    .file-card {
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        background-color: #f7f7f7;
+    }
+
+    body.dark-mode .file-card {
+        background-color: #333;
+    }
+
+    .file-card h3 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
+
+    .file-card p {
+        font-size: 1rem;
+        color: #555;
+        margin-bottom: 20px;
+    }
+
+    body.dark-mode .file-card p {
+        color: #ccc;
+    }
+
+    .file-input-label {
+        display: block;
+        width: 100%;
+        padding: 10px 15px;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color 0.3s ease;
+        margin-bottom: 15px;
+    }
+    .file-input-label:hover {
+        border-color: #aaa;
+    }
+    body.dark-mode .file-input-label {
+        border-color: #444;
+    }
+    body.dark-mode .file-input-label:hover {
+        border-color: #666;
+    }
+
+    input[type="file"] {
+        display: none;
+    }
+
+    /* Button styles */
+    .button-action {
+      position: relative;
+      text-decoration: none;
+      color: var(--button-text-light);
+      background: var(--button-gradient);
+      padding: 14px 25px;
+      border-radius: 10px;
+      font-size: 1.25em;
+      cursor: pointer;
+      display: inline-block;
+      text-align: center;
+      width: 100%;
+      border: none;
+    }
+
+    .button-action span {
+      position: relative;
+      z-index: 1;
+    }
+
+    .button-action::before {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      background: var(--button-bg-dark);
+      border-radius: 9px;
+      transition: 0.5s;
+    }
+
+    .button-action:hover::before {
+      opacity: 0.7;
+    }
+
+    .button-action::after {
+      content: "";
+      position: absolute;
+      inset: 0px;
+      background: var(--button-gradient);
+      border-radius: 9px;
+      transition: 0.5s;
+      opacity: 0;
+      filter: blur(20px);
+    }
+
+    .button-action:hover::after {
+      opacity: 1;
+    }
+
+    .button-action:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .button-download {
+      --main-focus: #2d8cf0;
+      --font-color: var(--font-color-dl);
+      --bg-color-sub: var(--bg-color-sub-dl);
+      --bg-color: var(--bg-color-dl);
+      --main-color: var(--main-color-dl);
+      position: relative;
+      width: 100%;
+      height: 40px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center; /* Center the content */
+      border: 2px solid var(--main-color);
+      box-shadow: 4px 4px var(--main-color);
+      background-color: var(--bg-color);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 15px;
+      text-decoration: none;
+    }
+
+    .button-download, .button-download__icon, .button-download__text {
+      transition: all 0.3s;
+    }
+
+    .button-download .button-download__text {
+      color: var(--font-color);
+      font-weight: 600;
+      white-space: nowrap;
+      flex-grow: 1;
+      text-align: center;
+    }
+
+    .button-download .button-download__icon {
+      position: absolute;
+      top: 0;
+      right: 0;
+      transform: translateX(calc(100% - 40px));
+      height: 100%;
+      width: 39px;
+      background-color: var(--bg-color-sub);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .button-download:hover {
+      background: var(--bg-color);
+    }
+
+    .button-download:hover .button-download__text {
+      color: transparent;
+    }
+
+    .button-download:hover .button-download__icon {
+      width: calc(100% - 2px);
+      transform: translateX(0);
+    }
+
+    .button-download:active {
+      transform: translate(3px, 3px);
+      box-shadow: 0px 0px var(--main-color);
+    }
+
+    .button-download .svg {
+      width: 20px;
+      fill: var(--main-color);
+    }
+
+    .status-message {
+        font-size: 1rem;
+        margin-top: 10px;
+        font-style: italic;
+        color: #666;
+    }
+
+    body.dark-mode .status-message {
+        color: #aaa;
+    }
+
+    .text-area-output {
+        width: 100%;
+        height: 150px;
+        padding: 10px;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        background-color: transparent;
+        color: inherit;
+        resize: vertical;
+        margin-top: 10px;
+    }
+
+    body.dark-mode .text-area-output {
+        border-color: #444;
+        background-color: #1a1a1a;
+    }
+
+    /* Smaller nav buttons for mobile */
+    @media (max-width: 600px) {
+        .logo-message {
+            font-size: 1.2rem;
+            white-space: normal;
+            text-align: center; /* Changed from left to center */
+            margin-top: 5px; /* Add some space below the logo */
+        }
+        .nav-top {
+            flex-direction: column; /* Stack logo and message vertically */
+            gap: 5px;
+        }
+        .file-utilities-container {
+            grid-template-columns: 1fr;
+        }
+        .game-section {
+            padding-top: 220px;
+        }
+        .nav-button {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+        .nav-button span {
+            font-size: 0.875rem; /* text-sm */
+        }
+    }
+  </style>
+</head>
+<body>
+<nav id="main-nav">
+  <div class="nav-top">
+    <a href="index.html" class="logo">
+      WaryWEB
+    </a>
+    <span class="logo-message">File Utilities</span>
+    <div class="mode-toggle" id="modeToggle">
+      <div class="toggle-thumb"></div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <button class="nav-button cursor-pointer font-semibold overflow-hidden relative z-10 border border-indigo-500 group px-2 py-1" data-target="#image-compressor">
+      <span class="relative z-10 text-indigo-500 group-hover:text-white text-sm duration-500 dark:text-purple-300">Compressor</span>
+      <span class="absolute w-full h-full bg-indigo-500 -left-32 top-0 -rotate-45 group-hover:rotate-0 group-hover:left-0 duration-500"></span>
+      <span class="absolute w-full h-full bg-purple-500 -right-32 top-0 -rotate-45 group-hover:rotate-0 group-hover:right-0 duration-500"></span>
+    </button>
+    <button class="nav-button cursor-pointer font-semibold overflow-hidden relative z-10 border border-indigo-500 group px-2 py-1" data-target="#image-to-pdf">
+      <span class="relative z-10 text-indigo-500 group-hover:text-white text-sm duration-500 dark:text-purple-300">Image to PDF</span>
+      <span class="absolute w-full h-full bg-indigo-500 -left-32 top-0 -rotate-45 group-hover:rotate-0 group-hover:left-0 duration-500"></span>
+      <span class="absolute w-full h-full bg-purple-500 -right-32 top-0 -rotate-45 group-hover:rotate-0 group-hover:right-0 duration-500"></span>
+    </button>
+    <button class="nav-button cursor-pointer font-semibold overflow-hidden relative z-10 border border-indigo-500 group px-2 py-1" data-target="#jpg-to-png">
+      <span class="relative z-10 text-indigo-500 group-hover:text-white text-sm duration-500 dark:text-purple-300">JPG to PNG</span>
+      <span class="absolute w-full h-full bg-indigo-500 -left-32 top-0 -rotate-45 group-hover:rotate-0 group-hover:left-0 duration-500"></span>
+      <span class="absolute w-full h-full bg-purple-500 -right-32 top-0 -rotate-45 group-hover:rotate-0 group-hover:right-0 duration-500"></span>
+    </button>
+    <button class="nav-button cursor-pointer font-semibold overflow-hidden relative z-10 border border-indigo-500 group px-2 py-1" data-target="#ocr-tool">
+      <span class="relative z-10 text-indigo-500 group-hover:text-white text-sm duration-500 dark:text-purple-300">Text Extractor</span>
+      <span class="absolute w-full h-full bg-indigo-500 -left-32 top-0 -rotate-45 group-hover:rotate-0 group-hover:left-0 duration-500"></span>
+      <span class="absolute w-full h-full bg-purple-500 -right-32 top-0 -rotate-45 group-hover:rotate-0 group-hover:right-0 duration-500"></span>
+    </button>
+    <button class="nav-button cursor-pointer font-semibold overflow-hidden relative z-10 border border-indigo-500 group px-2 py-1" data-target="#zip-tool">
+      <span class="relative z-10 text-indigo-500 group-hover:text-white text-sm duration-500 dark:text-purple-300">ZIP / Unzip</span>
+      <span class="absolute w-full h-full bg-indigo-500 -left-32 top-0 -rotate-45 group-hover:rotate-0 group-hover:left-0 duration-500"></span>
+      <span class="absolute w-full h-full bg-purple-500 -right-32 top-0 -rotate-45 group-hover:rotate-0 group-hover:right-0 duration-500"></span>
+    </button>
+  </div>
+</nav>
+
+<section id="utilities-section" class="game-section">
+  <div class="container">
+    <h2 class="section-title">File Utilities</h2>
+    <div class="file-utilities-container">
+
+      <!-- Image Compressor -->
+      <div id="image-compressor" class="file-card">
+        <h3>Image Compressor</h3>
+        <p>Reduce the file size of your images.</p>
+        <label for="compress-input" class="file-input-label">
+          Choose Image
+        </label>
+        <input id="compress-input" type="file" accept="image/*">
+        <div class="options-group" style="display: none;">
+          <label for="compress-quality">Quality: <span id="quality-value">80</span>%</label>
+          <input type="range" id="compress-quality" min="1" max="100" value="80">
+        </div>
+        <button id="compress-btn" class="button-action" disabled>
+          <span>Compress Image</span>
+        </button>
+        <div id="compress-result" style="display: none;">
+          <a id="compress-download-link" class="button-download" download="compressed_image.jpg">
+            <span class="button-download__text">Download</span>
+            <span class="button-download__icon">
+                      <svg class="svg" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14V8m-4 4h8" />
+                      </svg>
+                  </span>
+          </a>
+          <p class="status-message">Original: <span id="original-size"></span> | New: <span id="new-size"></span></p>
+        </div>
+      </div>
+
+      <!-- Image to PDF -->
+      <div id="image-to-pdf" class="file-card">
+        <h3>Image to PDF</h3>
+        <p>Convert an image file into a PDF document.</p>
+        <label for="pdf-input" class="file-input-label">
+          Choose Image
+        </label>
+        <input id="pdf-input" type="file" accept="image/*">
+        <button id="pdf-btn" class="button-action" disabled>
+          <span>Generate PDF</span>
+        </button>
+        <div id="pdf-result" style="display: none;">
+          <a id="pdf-download-link" class="button-download" download="image.pdf">
+            <span class="button-download__text">Download PDF</span>
+            <span class="button-download__icon">
+                      <svg class="svg" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14V8m-4 4h8" />
+                      </svg>
+                  </span>
+          </a>
+        </div>
+      </div>
+
+      <!-- JPG to PNG -->
+      <div id="jpg-to-png" class="file-card">
+        <h3>JPG to PNG</h3>
+        <p>Convert a JPEG image into a PNG.</p>
+        <label for="png-input" class="file-input-label">
+          Choose JPG
+        </label>
+        <input id="png-input" type="file" accept="image/jpeg">
+        <button id="png-btn" class="button-action" disabled>
+          <span>Convert to PNG</span>
+        </button>
+        <div id="png-result" style="display: none;">
+          <a id="png-download-link" class="button-download" download="converted.png">
+            <span class="button-download__text">Download PNG</span>
+            <span class="button-download__icon">
+                      <svg class="svg" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14V8m-4 4h8" />
+                      </svg>
+                  </span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Text Extractor (OCR) -->
+      <div id="ocr-tool" class="file-card">
+        <h3>Text Extractor (OCR)</h3>
+        <p>Extract text from an image.</p>
+        <label for="ocr-input" class="file-input-label">
+          Choose Image
+        </label>
+        <input id="ocr-input" type="file" accept="image/*">
+        <button id="ocr-btn" class="button-action" disabled>
+          <span>Extract Text</span>
+        </button>
+        <div id="ocr-result" style="display: none;">
+          <textarea id="ocr-output" class="text-area-output" readonly placeholder="Extracted text will appear here..."></textarea>
+        </div>
+        <p id="ocr-status" class="status-message" style="display: none;">Extracting...</p>
+      </div>
+
+      <!-- ZIP / Unzip Tool -->
+      <div id="zip-tool" class="file-card">
+        <h3>ZIP / Unzip Tool</h3>
+        <p>Compress and decompress files.</p>
+        <div class="zip-section">
+          <h4>Create ZIP</h4>
+          <label for="zip-input" class="file-input-label">
+            Choose Files to ZIP
+          </label>
+          <input id="zip-input" type="file" multiple>
+          <button id="zip-btn" class="button-action" disabled>
+            <span>Create ZIP</span>
+          </button>
+          <p id="zip-status" class="status-message" style="display: none;">Zipping files...</p>
+        </div>
+        <div class="unzip-section" style="margin-top: 25px;">
+          <h4>Extract ZIP</h4>
+          <label for="unzip-input" class="file-input-label">
+            Choose ZIP File
+          </label>
+          <input id="unzip-input" type="file" accept=".zip">
+          <button id="unzip-btn" class="button-action" disabled>
+            <span>Unzip Files</span>
+          </button>
+          <div id="unzip-result" style="margin-top: 15px;"></div>
+          <p id="unzip-status" class="status-message" style="display: none;">Extracting files...</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+      // Dark Mode Toggle
+      const modeToggle = document.getElementById('modeToggle');
+      modeToggle.addEventListener('click', () => {
+          document.body.classList.toggle('dark-mode');
+      });
+
+      // Navigation Buttons Smooth Scroll with offset
+      const mainNav = document.getElementById('main-nav');
+      document.querySelectorAll('.nav-button').forEach(button => {
+          button.addEventListener('click', (event) => {
+              event.preventDefault();
+              const targetId = button.getAttribute('data-target');
+              const targetElement = document.querySelector(targetId);
+              const navHeight = mainNav.offsetHeight;
+
+              if (targetElement) {
+                  const topPosition = targetElement.getBoundingClientRect().top + window.scrollY;
+                  window.scrollTo({
+                      top: topPosition - navHeight - 20, // Subtract nav height and a bit more for padding
+                      behavior: 'smooth'
+                  });
+              }
+          });
+      });
+
+      // --- Utility Functions ---
+
+      /**
+       * Formats a file size in bytes into a human-readable string (KB, MB).
+       * @param {number} bytes The file size in bytes.
+       * @returns {string} The formatted file size string.
+       */
+      const formatBytes = (bytes) => {
+          if (bytes === 0) return '0 Bytes';
+          const k = 1024;
+          const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+          const i = Math.floor(Math.log(bytes) / Math.log(k));
+          return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      };
+
+      // --- Image Compressor ---
+      const compressInput = document.getElementById('compress-input');
+      const compressBtn = document.getElementById('compress-btn');
+      const compressQuality = document.getElementById('compress-quality');
+      const qualityValue = document.getElementById('quality-value');
+      const compressResult = document.getElementById('compress-result');
+      const compressDownloadLink = document.getElementById('compress-download-link');
+      const originalSizeSpan = document.getElementById('original-size');
+      const newSizeSpan = document.getElementById('new-size');
+      const compressOptions = document.querySelector('#image-compressor .options-group');
+
+      compressInput.addEventListener('change', () => {
+          const file = compressInput.files[0];
+          if (file) {
+              compressBtn.disabled = false;
+              compressOptions.style.display = 'block';
+              originalSizeSpan.textContent = formatBytes(file.size);
+              newSizeSpan.textContent = '...';
+              compressResult.style.display = 'none';
+          } else {
+              compressBtn.disabled = true;
+              compressOptions.style.display = 'none';
+          }
+      });
+
+      compressQuality.addEventListener('input', (event) => {
+          qualityValue.textContent = event.target.value;
+      });
+
+      compressBtn.addEventListener('click', () => {
+          const file = compressInput.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = (event) => {
+              const img = new Image();
+              img.onload = () => {
+                  const canvas = document.createElement('canvas');
+                  canvas.width = img.width;
+                  canvas.height = img.height;
+                  const ctx = canvas.getContext('2d');
+                  ctx.drawImage(img, 0, 0);
+
+                  const quality = compressQuality.value / 100;
+                  const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+
+                  const byteString = atob(compressedDataUrl.split(',')[1]);
+                  const ab = new ArrayBuffer(byteString.length);
+                  const ia = new Uint8Array(ab);
+                  for (let i = 0; i < byteString.length; i++) {
+                      ia[i] = byteString.charCodeAt(i);
+                  }
+                  const blob = new Blob([ab], { type: 'image/jpeg' });
+
+                  compressDownloadLink.href = URL.createObjectURL(blob);
+                  newSizeSpan.textContent = formatBytes(blob.size);
+                  compressResult.style.display = 'block';
+              };
+              img.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+      });
+
+      // --- Image to PDF ---
+      const pdfInput = document.getElementById('pdf-input');
+      const pdfBtn = document.getElementById('pdf-btn');
+      const pdfResult = document.getElementById('pdf-result');
+      const pdfDownloadLink = document.getElementById('pdf-download-link');
+
+      pdfInput.addEventListener('change', () => {
+          pdfBtn.disabled = !pdfInput.files[0];
+          pdfResult.style.display = 'none';
+      });
+
+      pdfBtn.addEventListener('click', () => {
+          const file = pdfInput.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = (event) => {
+              const img = new Image();
+              img.onload = () => {
+                  const { jsPDF } = window.jspdf;
+                  const doc = new jsPDF({
+                      orientation: img.width > img.height ? 'l' : 'p',
+                      unit: 'px',
+                      format: [img.width, img.height]
+                  });
+                  doc.addImage(img, 'JPEG', 0, 0, img.width, img.height);
+                  const pdfBlob = doc.output('blob');
+                  pdfDownloadLink.href = URL.createObjectURL(pdfBlob);
+                  pdfResult.style.display = 'block';
+              };
+              img.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+      });
+
+      // --- JPG to PNG ---
+      const pngInput = document.getElementById('png-input');
+      const pngBtn = document.getElementById('png-btn');
+      const pngResult = document.getElementById('png-result');
+      const pngDownloadLink = document.getElementById('png-download-link');
+
+      pngInput.addEventListener('change', () => {
+          pngBtn.disabled = !pngInput.files[0];
+          pngResult.style.display = 'none';
+      });
+
+      pngBtn.addEventListener('click', () => {
+          const file = pngInput.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = (event) => {
+              const img = new Image();
+              img.onload = () => {
+                  const canvas = document.createElement('canvas');
+                  canvas.width = img.width;
+                  canvas.height = img.height;
+                  const ctx = canvas.getContext('2d');
+                  ctx.drawImage(img, 0, 0);
+
+                  canvas.toBlob((blob) => {
+                      pngDownloadLink.href = URL.createObjectURL(blob);
+                      pngResult.style.display = 'block';
+                  }, 'image/png');
+              };
+              img.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+      });
+
+      // --- Text Extractor (OCR) ---
+      const ocrInput = document.getElementById('ocr-input');
+      const ocrBtn = document.getElementById('ocr-btn');
+      const ocrOutput = document.getElementById('ocr-output');
+      const ocrResult = document.getElementById('ocr-result');
+      const ocrStatus = document.getElementById('ocr-status');
+
+      ocrInput.addEventListener('change', () => {
+          ocrBtn.disabled = !ocrInput.files[0];
+          ocrResult.style.display = 'none';
+          ocrOutput.value = '';
+      });
+
+      ocrBtn.addEventListener('click', async () => {
+          const file = ocrInput.files[0];
+          if (!file) return;
+
+          ocrBtn.disabled = true;
+          ocrStatus.style.display = 'block';
+
+          try {
+              const { data: { text } } = await Tesseract.recognize(file, 'eng');
+              ocrOutput.value = text;
+              ocrResult.style.display = 'block';
+          } catch (error) {
+              ocrOutput.value = 'Error extracting text. Please try again.';
+              console.error('OCR Error:', error);
+          } finally {
+              ocrBtn.disabled = false;
+              ocrStatus.style.display = 'none';
+          }
+      });
+
+      // --- ZIP / Unzip Tool ---
+      const zipInput = document.getElementById('zip-input');
+      const zipBtn = document.getElementById('zip-btn');
+      const zipStatus = document.getElementById('zip-status');
+      const unzipInput = document.getElementById('unzip-input');
+      const unzipBtn = document.getElementById('unzip-btn');
+      const unzipResult = document.getElementById('unzip-result');
+      const unzipStatus = document.getElementById('unzip-status');
+
+      zipInput.addEventListener('change', () => {
+          zipBtn.disabled = !zipInput.files.length;
+      });
+
+      zipBtn.addEventListener('click', async () => {
+          const files = zipInput.files;
+          if (files.length === 0) return;
+
+          zipBtn.disabled = true;
+          zipStatus.style.display = 'block';
+
+          const zip = new JSZip();
+          for (let i = 0; i < files.length; i++) {
+              zip.file(files[i].name, files[i]);
+          }
+
+          try {
+              const zipBlob = await zip.generateAsync({ type: 'blob' });
+              saveAs(zipBlob, 'archive.zip');
+          } catch (error) {
+              console.error('ZIP Error:', error);
+          } finally {
+              zipBtn.disabled = false;
+              zipStatus.style.display = 'none';
+          }
+      });
+
+      unzipInput.addEventListener('change', () => {
+          unzipBtn.disabled = !unzipInput.files[0];
+          unzipResult.innerHTML = '';
+      });
+
+      unzipBtn.addEventListener('click', async () => {
+          const file = unzipInput.files[0];
+          if (!file) return;
+
+          unzipBtn.disabled = true;
+          unzipStatus.style.display = 'block';
+          unzipResult.innerHTML = '';
+
+          try {
+              const zip = await JSZip.loadAsync(file);
+              unzipResult.innerHTML = '<h3>Extracted Files:</h3>';
+              zip.forEach((relativePath, file) => {
+                  const fileBtn = document.createElement('a');
+                  fileBtn.className = 'button-download';
+                  fileBtn.download = file.name;
+                  fileBtn.style.marginTop = '10px';
+                  fileBtn.innerHTML = `
+                      <span class="button-download__text">${file.name}</span>
+                      <span class="button-download__icon">
+                          <svg class="svg" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14V8m-4 4h8" />
+                          </svg>
+                      </span>
+                  `;
+
+                  fileBtn.addEventListener('click', async (e) => {
+                      e.preventDefault();
+                      const blob = await file.async('blob');
+                      saveAs(blob, file.name);
+                  });
+                  unzipResult.appendChild(fileBtn);
+              });
+          } catch (error) {
+              unzipResult.innerHTML = `<p class="status-message" style="color: #FF4136;">Error extracting file. Please check if it's a valid ZIP file.</p>`;
+              console.error('Unzip Error:', error);
+          } finally {
+              unzipBtn.disabled = false;
+              unzipStatus.style.display = 'none';
+          }
+      });
+  });
+</script>
+</body>
+</html>

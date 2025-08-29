@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaryWEB | Utilities</title>
+  <link href="https://fonts.googleapis.com/css2?family=Satisfy&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+  <style>
+    :root {
+        --primary-dark: #0c0c0c;
+        --primary-light: #ffffff;
+        --accent-red: #FF4136;
+        --accent-yellow: #FFDC00;
+        --transition-slow: 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        --transition-fast: 0.3s ease;
+        --section-spacing: 80px;
+        --board-bg: #bbada0;
+        --empty-cell: #ccc0b3;
+        --font-color-light: #f9f6f2;
+        --font-color-dark: #776e65;
+        --fixed-tile-bg: #e5e5e5;
+        --user-tile-bg: #ffffff;
+        --active-tile-bg: #c9e0ff;
+        --highlight-bg: #d6eaf8;
+    }
+
+    body.dark-mode {
+        --primary-dark: #0c0c0c;
+        --primary-light: #ffffff;
+        --fixed-tile-bg: #333;
+        --user-tile-bg: #222;
+        --active-tile-bg: #555;
+        --highlight-bg: #4a668b;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        color: var(--primary-dark);
+        background-color: var(--primary-light);
+        overflow-x: hidden;
+        line-height: 1.6;
+        transition: background-color 0.5s ease;
+    }
+
+    body.dark-mode {
+        background-color: var(--primary-dark);
+        color: var(--primary-light);
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+    }
+
+    .container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* Navigation */
+    nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        transition: var(--transition-fast);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    body.dark-mode nav {
+        background: rgba(12, 12, 12, 0.8);
+        box-shadow: 0 2px 10px rgba(255,255,255,0.1);
+    }
+
+    .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        justify-content: space-between;
+        padding-right: 20px;
+    }
+
+    .logo {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 24px;
+        position: relative;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        white-space: nowrap;
+    }
+
+    .logo-message {
+        font-family: 'Satisfy', cursive;
+        font-size: 1.5rem;
+        font-weight: 500;
+        color: #666;
+        transition: color 0.3s ease;
+        flex-grow: 1;
+        text-align: center;
+    }
+
+    .mode-toggle {
+        width: 50px;
+        height: 24px;
+        background: #e0e0e0;
+        border-radius: 12px;
+        position: relative;
+        cursor: pointer;
+        transition: var(--transition-fast);
+        flex-shrink: 0;
+    }
+
+    body.dark-mode .mode-toggle {
+        background: #333;
+    }
+
+    .toggle-thumb {
+        width: 20px;
+        height: 20px;
+        background: var(--primary-light);
+        border-radius: 50%;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.3s ease;
+    }
+
+    body.dark-mode .toggle-thumb {
+        transform: translateX(26px);
+        background: var(--primary-dark);
+    }
+
+    /* Main Section */
+    .section-title {
+        font-size: 2.5rem;
+        margin-bottom: 30px;
+        text-align: center;
+        position: relative;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-red), var(--accent-yellow));
+        border-radius: 2px;
+    }
+
+    .game-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 100vh;
+        padding: var(--section-spacing) 0;
+        padding-top: 100px;
+    }
+
+    .utilities-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 25px;
+        width: 100%;
+        max-width: 900px;
+        padding: 20px;
+    }
+
+    .utility-button {
+      position: relative;
+      text-decoration: none;
+      color: var(--primary-light);
+      background: linear-gradient(45deg, #0ce39a, #69007f, #fc0987);
+      padding: 14px 25px;
+      border-radius: 10px;
+      font-size: 1.25em;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      height: 150px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      transition: all 0.5s ease;
+    }
+
+    .utility-button .icon-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2; /* Ensures content is on top */
+    }
+
+    .utility-button .icon-content i {
+        font-size: 2em;
+        margin-bottom: 10px;
+        color: var(--primary-light);
+    }
+
+    .utility-button .icon-content span {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 500;
+        font-size: 0.8em;
+        color: var(--primary-light);
+    }
+
+    .utility-button::before {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      background: #272727;
+      border-radius: 9px;
+      transition: 0.5s;
+      z-index: 1; /* Ensures background is behind content */
+    }
+
+    body.dark-mode .utility-button::before {
+        background: #0c0c0c;
+    }
+
+    .utility-button:hover::before {
+      opacity: 0.7;
+    }
+
+    .utility-button::after {
+      content: "";
+      position: absolute;
+      inset: 0px;
+      background: linear-gradient(45deg, #0ce39a, #69007f, #fc0987);
+      border-radius: 9px;
+      transition: 0.5s;
+      opacity: 0;
+      filter: blur(20px);
+      z-index: 0;
+    }
+
+    .utility-button:hover::after {
+      opacity: 1;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    }
+
+    .modal-content {
+        background-color: var(--user-tile-bg);
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        max-width: 90%;
+        width: 500px;
+        position: relative;
+        transform: scale(0.95);
+        opacity: 0;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        max-height: 90vh; /* Make the modal scrollable for all content */
+        overflow-y: auto;
+    }
+
+    .modal-overlay.active .modal-content {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    body.dark-mode .modal-content {
+        background-color: #222;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 2px solid var(--accent-red);
+        padding-bottom: 10px;
+    }
+
+    .modal-close {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        cursor: pointer;
+        line-height: 1;
+    }
+
+    body.dark-mode .modal-close {
+        color: var(--primary-light);
+    }
+
+    /* Utility specific styles now inside the modal */
+    .tool-card {
+        padding: 0;
+        box-shadow: none;
+        background-color: transparent;
+        border-radius: 0;
+    }
+
+    body.dark-mode .tool-card {
+        background-color: transparent;
+    }
+
+    .tool-card h3 {
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+    }
+
+    .tool-card p {
+        font-size: 1.1rem;
+        color: #555;
+        margin-bottom: 20px;
+    }
+
+    body.dark-mode .tool-card p {
+        color: #ccc;
+    }
+
+    .tool-input {
+        width: 100%;
+        padding: 10px 15px;
+        font-size: 1em;
+        text-align: center;
+        border: 2px solid var(--primary-dark);
+        border-radius: 8px;
+        outline: none;
+        font-family: 'Inter', sans-serif;
+        background-color: transparent;
+        color: inherit;
+        margin-bottom: 15px;
+    }
+
+    body.dark-mode .tool-input {
+        border-color: var(--primary-light);
+    }
+
+    /* Utility specific button styles inside modal */
+    .modal-content .utility-button {
+        height: auto;
+        flex-direction: row;
+        gap: 10px;
+        justify-content: center;
+        padding: 10px 15px;
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .modal-content .utility-button .icon-content {
+        flex-direction: row;
+        gap: 0; /* Remove gap for icon-only buttons */
+    }
+
+    .modal-content .utility-button .icon-content i {
+        font-size: 1.25em; /* Make modal icons smaller */
+        margin-bottom: 0;
+    }
+
+    .modal-content .utility-button .icon-content span {
+        display: none; /* Hide the text */
+    }
+
+    /* Calculator Specifics */
+    .calculator-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 10px;
+        width: 100%;
+        max-width: 380px;
+        margin: 0 auto;
+        margin-top: 20px;
+    }
+
+    .calc-screen {
+        grid-column: 1 / -1;
+        background-color: var(--fixed-tile-bg);
+        border: 2px solid var(--primary-dark);
+        padding: 10px;
+        text-align: right;
+        font-size: 1.5em;
+        font-family: 'Space Grotesk', sans-serif;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin-bottom: 5px;
+        color: var(--primary-dark);
+        min-height: 60px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-end;
+    }
+
+    #calculator-input {
+        width: 100%;
+        background-color: transparent;
+        border: none;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1em;
+        text-align: right;
+        color: inherit;
+        outline: none;
+    }
+
+    body.dark-mode .calc-screen {
+        background-color: #444;
+        color: var(--primary-light);
+        border-color: var(--primary-light);
+    }
+
+    .calc-button {
+      position: relative;
+      text-decoration: none;
+      color: var(--primary-dark);
+      background: linear-gradient(45deg, #0ce39a, #69007f, #fc0987);
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 1.25em;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .calc-button span, .calc-button i {
+        position: relative;
+        z-index: 2; /* Ensures content is on top */
+    }
+
+    .calc-button::before {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      background: var(--user-tile-bg);
+      border-radius: 9px;
+      transition: 0.5s;
+      z-index: 1; /* Ensures background is behind content */
+    }
+
+    body.dark-mode .calc-button::before {
+        background: #0c0c0c;
+    }
+
+    .calc-button:hover::before {
+      opacity: 0.7;
+    }
+
+    .calc-button::after {
+      content: "";
+      position: absolute;
+      inset: 0px;
+      background: linear-gradient(45deg, #0ce39a, #69007f, #fc0987);
+      border-radius: 9px;
+      transition: 0.5s;
+      opacity: 0;
+      filter: blur(20px);
+      z-index: 0;
+    }
+
+    .calc-button:hover::after {
+      opacity: 1;
+    }
+
+    .calc-button span {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 1em;
+        color: var(--primary-dark);
+    }
+
+    body.dark-mode .calc-button span {
+        color: var(--primary-light);
+    }
+
+    .calc-button.operator {
+        background: linear-gradient(45deg, #FFDC00, #FFD700);
+        color: var(--primary-dark);
+        font-weight: 700;
+    }
+
+    .calc-button.operator::before {
+      background: var(--user-tile-bg);
+    }
+
+    body.dark-mode .calc-button.operator {
+        background: linear-gradient(45deg, #b89800, #b89800);
+        color: var(--primary-light);
+    }
+
+    body.dark-mode .calc-button.operator::before {
+      background: #222;
+    }
+
+    .calc-button.special {
+        background: linear-gradient(45deg, #FF4136, #E73827);
+        color: var(--primary-light);
+        font-weight: 700;
+    }
+
+    .calc-button.special::before {
+      background: var(--user-tile-bg);
+    }
+
+    body.dark-mode .calc-button.special {
+        background: linear-gradient(45deg, #b8342c, #b8342c);
+    }
+
+    body.dark-mode .calc-button.special::before {
+      background: #222;
+    }
+
+    .calc-button.function {
+      background: linear-gradient(45deg, #91c7b8, #609d94);
+    }
+
+    body.dark-mode .calc-button.function {
+      background: linear-gradient(45deg, #4a668b, #3e536e);
+    }
+
+    .calc-button.toggle-button {
+      background: var(--highlight-bg);
+      color: var(--primary-dark);
+      font-weight: bold;
+    }
+
+    body.dark-mode .calc-button.toggle-button {
+        background: var(--highlight-bg);
+        color: var(--primary-dark);
+    }
+
+    .calc-button.toggle-button.active {
+      background: #2563eb;
+      color: white;
+      font-weight: bold;
+    }
+
+    /* Timer specific styles */
+    .timer-display {
+        font-size: 2em;
+        font-weight: 700;
+        margin-bottom: 15px;
+        text-align: center;
+        color: var(--primary-dark);
+    }
+
+    body.dark-mode .timer-display {
+        color: var(--primary-light);
+    }
+
+    #timer-input-group {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+
+    #timer-input-group input {
+        width: 80px;
+    }
+
+    #timer-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        width: 100%;
+    }
+
+    #timer-buttons .utility-button {
+        height: auto;
+        flex-grow: 1;
+        font-size: 1em;
+        padding: 10px 15px;
+    }
+
+    #timer-buttons .utility-button span {
+        font-size: 1em;
+        color: var(--primary-light);
+    }
+
+    /* QR Code Specifics */
+    #qr-code-container {
+        margin-top: 15px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 150px;
+        padding: 10px;
+    }
+    #qr-code-container img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    /* Text-to-Speech Specifics */
+    #tts-input {
+        resize: none;
+        height: 150px;
+    }
+
+    #tts-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    /* Color Picker Specifics */
+    #color-display {
+        height: 100px;
+        border-radius: 8px;
+        margin-top: 15px;
+        border: 2px solid var(--primary-dark);
+    }
+
+    body.dark-mode #color-display {
+        border-color: var(--primary-light);
+    }
+
+    #color-value {
+        text-align: center;
+        margin-top: 10px;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.2em;
+    }
+
+    /* Password Generator Styles */
+    .modal-content.password-generator-modal {
+      width: 400px;
+      max-height: 80vh; /* Set a maximum height for the modal */
+      overflow-y: auto; /* Enable vertical scrolling */
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 1em;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .form-group input[type="range"] {
+        width: 100%;
+    }
+
+    .checkbox-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 0.9em;
+    }
+
+    /* New "button-like" checkbox styles */
+    .custom-checkbox-container {
+        display: flex;
+        align-items: center;
+        padding: 10px 15px;
+        border: 2px solid var(--primary-dark);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        flex: 1 1 auto;
+        text-align: center;
+        justify-content: center;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    body.dark-mode .custom-checkbox-container {
+        border-color: var(--primary-light);
+    }
+
+    .custom-checkbox-container:hover {
+        background-color: var(--fixed-tile-bg);
+    }
+
+    body.dark-mode .custom-checkbox-container:hover {
+        background-color: #333;
+    }
+
+    .custom-checkbox-container:has(input:checked) {
+        background-color: var(--accent-red);
+        color: var(--primary-light);
+        border-color: var(--accent-red);
+        font-weight: bold;
+    }
+
+    .custom-checkbox-container:has(input:checked):hover {
+        background-color: #e73827; /* A slightly darker red on hover */
+    }
+
+    .strength-meter {
+        height: 10px;
+        border-radius: 5px;
+        background-color: #ccc;
+        margin: 10px 0;
+        overflow: hidden;
+    }
+
+    .strength-bar {
+        height: 100%;
+        width: 0%;
+        transition: width 0.3s ease-in-out;
+    }
+
+    .strength-weak { background-color: #FF4136; }
+    .strength-medium { background-color: #FFDC00; }
+    .strength-strong { background-color: #7FFF00; }
+    .strength-unbreakable { background-color: #00B36B; }
+
+    #generated-passwords {
+        margin-top: 20px;
+        font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .password-item {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--fixed-tile-bg);
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        font-size: 1.1em;
+        word-break: break-all;
+        transition: all 0.3s ease;
+    }
+
+    body.dark-mode .password-item {
+        background-color: #444;
+    }
+
+    .password-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        background: var(--active-tile-bg);
+    }
+
+    body.dark-mode .password-item:hover {
+        background: #555;
+    }
+
+    .password-item span {
+        flex-grow: 1;
+        margin-right: 10px;
+    }
+
+    .copy-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1em;
+        color: var(--primary-dark);
+        transition: color 0.3s ease;
+    }
+
+    body.dark-mode .copy-btn {
+        color: var(--primary-light);
+    }
+
+    .copy-btn:hover {
+        color: var(--accent-red);
+    }
+
+    .copy-btn i {
+        font-size: 1.2em;
+    }
+
+    #copy-all-btn {
+        width: auto;
+        padding: 8px 15px;
+    }
+
+    /* Responsive adjustments for buttons inside modals */
+    @media (max-width: 767px) {
+        .utilities-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .utility-button {
+            height: 100px;
+        }
+
+        .modal-content {
+            padding: 20px;
+        }
+
+        #timer-buttons .utility-button {
+            padding: 8px 12px;
+            font-size: 0.9em;
+        }
+    }
+
+    /* Calculator History and Degree/Radian */
+    #calculator-history {
+        margin-top: 20px;
+        font-size: 0.9em;
+        max-height: 150px;
+        overflow-y: auto;
+    }
+    .history-item {
+        background-color: var(--fixed-tile-bg);
+        padding: 5px 10px;
+        border-radius: 6px;
+        margin-bottom: 5px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    body.dark-mode .history-item {
+        background-color: #333;
+    }
+    .history-item-buttons {
+      display: flex;
+      gap: 5px;
+    }
+
+    #deg-rad-toggle {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 10px;
+        grid-column: 1 / -1;
+    }
+
+    #deg-rad-toggle .calc-button {
+      padding: 10px;
+      font-size: 0.9em;
+      font-weight: bold;
+    }
+    .calc-button.mem {
+        background: #f0f0f0;
+        color: #000;
+        font-weight: 500;
+        padding: 10px;
+        font-size: 1em;
+    }
+    body.dark-mode .calc-button.mem {
+        background: #555;
+        color: #fff;
+    }
+
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-left">
+    <a href="index.html" class="logo">
+      WaryWEB
+    </a>
+    <span class="logo-message">Utilities Hub</span>
+  </div>
+  <div class="nav-actions">
+    <div class="mode-toggle" id="modeToggle">
+      <div class="toggle-thumb"></div>
+    </div>
+  </div>
+</nav>
+
+<section id="utilities-section" class="game-section">
+  <div class="container">
+    <h2 class="section-title">WaryWEB Utilities</h2>
+    <div class="utilities-grid">
+      <button class="utility-button" data-utility="url-shortener">
+        <div class="icon-content">
+          <i class="fas fa-link"></i>
+          <span>URL Shortener</span>
+        </div>
+      </button>
+      <button class="utility-button" data-utility="calculator">
+        <div class="icon-content">
+          <i class="fas fa-calculator"></i>
+          <span>Calculator</span>
+        </div>
+      </button>
+      <button class="utility-button" data-utility="password-generator">
+        <div class="icon-content">
+          <i class="fas fa-key"></i>
+          <span>Password Generator</span>
+        </div>
+      </button>
+      <button class="utility-button" data-utility="stopwatch">
+        <div class="icon-content">
+          <i class="fas fa-stopwatch"></i>
+          <span>Stopwatch</span>
+        </div>
+      </button>
+      <button class="utility-button" data-utility="timer">
+        <div class="icon-content">
+          <i class="fas fa-hourglass-half"></i>
+          <span>Timer</span>
+        </div>
+      </button>
+      <button class="utility-button" data-utility="qr-generator">
+        <div class="icon-content">
+          <i class="fas fa-qrcode"></i>
+          <span>QR Generator</span>
+        </div>
+      </button>
+      <button class="utility-button" data-utility="text-to-speech">
+        <div class="icon-content">
+          <i class="fas fa-volume-up"></i>
+          <span>Text-to-Speech</span>
+        </div>
+      </button>
+      <button class="utility-button" data-utility="color-picker">
+        <div class="icon-content">
+          <i class="fas fa-palette"></i>
+          <span>Color Picker</span>
+        </div>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Modal for Utilities -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-content" id="modalContent">
+    <div class="modal-header">
+      <h3 id="modalTitle"></h3>
+      <span class="modal-close" id="modalClose">&times;</span>
+    </div>
+    <div id="modalBody">
+      <!-- Utility content will be loaded here -->
+    </div>
+  </div>
+</div>
+
+<script>
+  // Dark Mode Toggle
+  const modeToggle = document.getElementById('modeToggle');
+  modeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+  });
+
+  // Modal Functionality
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalContent = document.getElementById('modalContent');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalBody = document.getElementById('modalBody');
+  const modalClose = document.getElementById('modalClose');
+  const utilityButtons = document.querySelectorAll('.utility-button');
+
+  // Utility Templates (HTML strings)
+  const urlShortenerTemplate = `
+    <div class="tool-card">
+      <p>Enter a long URL to get a shortened link.</p>
+      <input type="text" id="url-input" class="tool-input" placeholder="https://example.com/long/url">
+      <button class="utility-button" id="shorten-button">
+        <div class="icon-content"><i class="fas fa-link"></i></div>
+      </button>
+      <p id="shortened-url" style="margin-top: 10px;"></p>
+    </div>
+  `;
+
+  const calculatorTemplate = `
+    <div class="tool-card">
+      <div class="calculator-grid">
+        <div class="calc-screen">
+            <input type="text" id="calculator-input" placeholder="0">
+        </div>
+        <button class="calc-button special" data-value="AC" style="grid-column: span 1;"><span>AC</span></button>
+        <button class="calc-button operator" data-value="%" style="grid-column: span 1;"><span>%</span></button>
+        <button class="calc-button operator" data-value="!" style="grid-column: span 1;"><span>x!</span></button>
+        <button class="calc-button operator" data-value="(" style="grid-column: span 1;"><span>(</span></button>
+        <button class="calc-button operator" data-value=")" style="grid-column: span 1;"><span>)</span></button>
+        <button class="calc-button operator" data-value="/" style="grid-column: span 1;"><span>÷</span></button>
+
+        <button class="calc-button function" data-value="sin(" style="grid-column: span 1;"><span>sin</span></button>
+        <button class="calc-button function" data-value="cos(" style="grid-column: span 1;"><span>cos</span></button>
+        <button class="calc-button function" data-value="tan(" style="grid-column: span 1;"><span>tan</span></button>
+        <button class="calc-button function" data-value="log(" style="grid-column: span 1;"><span>log</span></button>
+        <button class="calc-button function" data-value="ln(" style="grid-column: span 1;"><span>ln</span></button>
+        <button class="calc-button operator" data-value="*" style="grid-column: span 1;"><span>×</span></button>
+
+        <button class="calc-button" data-value="7" style="grid-column: span 1;"><span>7</span></button>
+        <button class="calc-button" data-value="8" style="grid-column: span 1;"><span>8</span></button>
+        <button class="calc-button" data-value="9" style="grid-column: span 1;"><span>9</span></button>
+        <button class="calc-button operator" data-value="^" style="grid-column: span 1;"><span>x<sup>y</sup></span></button>
+        <button class="calc-button function" data-value="sqrt(" style="grid-column: span 1;"><span>√</span></button>
+        <button class="calc-button operator" data-value="-" style="grid-column: span 1;"><span>-</span></button>
+
+        <button class="calc-button" data-value="4" style="grid-column: span 1;"><span>4</span></button>
+        <button class="calc-button" data-value="5" style="grid-column: span 1;"><span>5</span></button>
+        <button class="calc-button" data-value="6" style="grid-column: span 1;"><span>6</span></button>
+        <button class="calc-button" data-value="pi" style="grid-column: span 1;"><span>π</span></button>
+        <button class="calc-button" data-value="e" style="grid-column: span 1;"><span>e</span></button>
+        <button class="calc-button operator" data-value="+" style="grid-column: span 1;"><span>+</span></button>
+
+        <button class="calc-button" data-value="1" style="grid-column: span 1;"><span>1</span></button>
+        <button class="calc-button" data-value="2" style="grid-column: span 1;"><span>2</span></button>
+        <button class="calc-button" data-value="3" style="grid-column: span 1;"><span>3</span></button>
+        <button class="calc-button" data-value="0" style="grid-column: span 2;"><span>0</span></button>
+        <button class="calc-button" data-value="." style="grid-column: span 1;"><span>.</span></button>
+        <button class="calc-button special" data-value="=" style="grid-column: span 1;"><span>=</span></button>
+      </div>
+      <div id="calculator-history"></div>
+    </div>
+  `;
+
+  const passwordGeneratorTemplate = `
+    <div class="tool-card">
+        <div class="form-group">
+            <label for="password-length">Password Length: <span id="length-value">12</span></label>
+            <input type="range" id="password-length" min="4" max="60" value="12">
+        </div>
+        <div class="form-group">
+            <label>Character Sets:</label>
+            <div class="checkbox-group">
+                <label class="custom-checkbox-container">
+                    <input type="checkbox" id="uppercase-char" checked>
+                    Uppercase (A-Z)
+                </label>
+                <label class="custom-checkbox-container">
+                    <input type="checkbox" id="lowercase-char" checked>
+                    Lowercase (a-z)
+                </label>
+                <label class="custom-checkbox-container">
+                    <input type="checkbox" id="numbers-char" checked>
+                    Numbers (0-9)
+                </label>
+                <label class="custom-checkbox-container">
+                    <input type="checkbox" id="symbols-char" checked>
+                    Symbols (!@#...)
+                </label>
+                <label class="custom-checkbox-container">
+                    <input type="checkbox" id="space-char">
+                    Spaces
+                </label>
+            </div>
+            <div class="custom-input-group" style="margin-top: 10px;">
+                <label class="custom-checkbox-container">
+                    <input type="checkbox" id="custom-char-toggle">
+                    Custom Characters
+                </label>
+                <input type="text" id="custom-chars" class="tool-input" placeholder="Enter custom characters" style="display:none; margin-top: 5px;">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Advanced Rules:</label>
+            <div class="checkbox-group">
+                <label class="custom-checkbox-container">
+                    <input type="checkbox" id="avoid-similar">
+                    Avoid similar chars (e.g., O,0,l,I)
+                </label>
+                <label class="custom-checkbox-container">
+                    <input type="checkbox" id="avoid-repeat">
+                    Avoid repeating characters
+                </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Password Strength:</label>
+            <div class="strength-meter">
+                <div class="strength-bar" id="strength-bar"></div>
+            </div>
+            <span id="strength-text" style="font-weight:bold;"></span>
+        </div>
+        <div class="form-group">
+            <label for="num-passwords">Number of Passwords:</label>
+            <input type="number" id="num-passwords" class="tool-input" value="1" min="1" max="10">
+        </div>
+        <button class="utility-button" id="generate-password-btn">
+          <div class="icon-content"><i class="fas fa-key"></i></div>
+        </button>
+        <div id="generated-passwords"></div>
+    </div>
+  `;
+
+  const stopwatchTemplate = `
+    <div class="tool-card">
+      <p>A high-precision stopwatch.</p>
+      <div id="stopwatch-display" class="calc-screen timer-display">00:00:00.000</div>
+      <div id="stopwatch-buttons" style="margin-top: 20px;">
+        <button class="utility-button" id="start-stopwatch">
+          <div class="icon-content"><i class="fas fa-play"></i></div>
+        </button>
+        <button class="utility-button" id="stop-stopwatch">
+          <div class="icon-content"><i class="fas fa-pause"></i></div>
+        </button>
+        <button class="utility-button" id="reset-stopwatch">
+          <div class="icon-content"><i class="fas fa-redo"></i></div>
+        </button>
+      </div>
+    </div>
+  `;
+
+  const timerTemplate = `
+    <div class="tool-card">
+      <p>Set a countdown timer.</p>
+      <div id="timer-input-group" style="display: flex; gap: 10px; justify-content: center;">
+        <input type="number" id="minutes-input" class="tool-input" placeholder="Min" min="0">
+        <input type="number" id="seconds-input" class="tool-input" placeholder="Sec" min="0" max="59">
+      </div>
+      <div id="timer-display" class="calc-screen timer-display">00:00</div>
+      <div id="timer-buttons" style="margin-top: 20px;">
+        <button class="utility-button" id="start-timer">
+          <div class="icon-content"><i class="fas fa-play"></i></div>
+        </button>
+        <button class="utility-button" id="stop-timer">
+          <div class="icon-content"><i class="fas fa-pause"></i></div>
+        </button>
+        <button class="utility-button" id="reset-timer">
+          <div class="icon-content"><i class="fas fa-redo"></i></div>
+        </button>
+      </div>
+    </div>
+  `;
+
+  const qrGeneratorTemplate = `
+    <div class="tool-card">
+      <p>Generate a QR code from any text or URL.</p>
+      <input type="text" id="qr-input" class="tool-input" placeholder="Enter text or URL">
+      <button class="utility-button" id="generate-qr">
+        <div class="icon-content"><i class="fas fa-qrcode"></i></div>
+      </button>
+      <div id="qr-code-container"></div>
+    </div>
+  `;
+
+  const textToSpeechTemplate = `
+    <div class="tool-card">
+        <p>Convert text to spoken audio.</p>
+        <textarea id="tts-input" class="tool-input" placeholder="Enter text to speak"></textarea>
+        <div id="tts-buttons">
+            <button class="utility-button" id="speak-button">
+              <div class="icon-content"><i class="fas fa-volume-up"></i></div>
+            </button>
+            <button class="utility-button" id="stop-speech-button">
+              <div class="icon-content"><i class="fas fa-stop"></i></div>
+            </button>
+        </div>
+    </div>
+  `;
+
+  const colorPickerTemplate = `
+    <div class="tool-card">
+        <p>Pick a color and get its hex code.</p>
+        <input type="color" id="color-input" class="tool-input">
+        <div id="color-display"></div>
+        <div id="color-value">#000000</div>
+    </div>
+  `;
+
+  // Function to show the modal with the correct content
+  function showModal(utility) {
+    let title = '';
+    let bodyHtml = '';
+
+    // Clear and reset modal content/classes
+    modalContent.className = 'modal-content';
+
+    switch (utility) {
+      case 'url-shortener':
+        title = 'URL Shortener';
+        bodyHtml = urlShortenerTemplate;
+        break;
+      case 'calculator':
+        title = 'Scientific Calculator';
+        bodyHtml = calculatorTemplate;
+        break;
+      case 'password-generator':
+        title = 'Password Generator';
+        bodyHtml = passwordGeneratorTemplate;
+        modalContent.classList.add('password-generator-modal');
+        break;
+      case 'stopwatch':
+        title = 'Stopwatch';
+        bodyHtml = stopwatchTemplate;
+        break;
+      case 'timer':
+        title = 'Countdown Timer';
+        bodyHtml = timerTemplate;
+        break;
+      case 'qr-generator':
+        title = 'QR Code Generator';
+        bodyHtml = qrGeneratorTemplate;
+        break;
+      case 'text-to-speech':
+        title = 'Text-to-Speech';
+        bodyHtml = textToSpeechTemplate;
+        break;
+      case 'color-picker':
+        title = 'Color Picker';
+        bodyHtml = colorPickerTemplate;
+        break;
+    }
+
+    modalTitle.textContent = title;
+    modalBody.innerHTML = bodyHtml;
+    modalOverlay.style.display = 'flex';
+    setTimeout(() => modalOverlay.classList.add('active'), 10);
+
+    // Attach event listeners for the specific utility
+    attachUtilityEventListeners(utility);
+  }
+
+  // Function to hide the modal
+  function hideModal() {
+    modalOverlay.classList.remove('active');
+    setTimeout(() => {
+        modalOverlay.style.display = 'none';
+        modalBody.innerHTML = ''; // Clear content
+    }, 300);
+  }
+
+  // Event listeners for the utility buttons
+  utilityButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const utility = button.dataset.utility;
+      showModal(utility);
+    });
+  });
+
+  // Event listener for closing the modal
+  modalClose.addEventListener('click', hideModal);
+  modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) {
+      hideModal();
+    }
+  });
+
+
+  // --- Utility-specific JavaScript (Functionality to be attached) ---
+  function attachUtilityEventListeners(utility) {
+    if (utility === 'url-shortener') {
+      const urlInput = document.getElementById('url-input');
+      const shortenButton = document.getElementById('shorten-button');
+      const shortenedUrlDisplay = document.getElementById('shortened-url');
+
+      shortenButton.addEventListener('click', async () => {
+        const longUrl = urlInput.value.trim();
+        if (longUrl) {
+          try {
+            shortenedUrlDisplay.textContent = 'Shortening...';
+            // Use a reliable, free URL shortening service
+            const response = await fetch(`https://is.gd/create.php?format=json&url=${encodeURIComponent(longUrl)}`);
+            const data = await response.json();
+            if (data.shorturl) {
+              const shortUrl = data.shorturl;
+              shortenedUrlDisplay.innerHTML = `<a href="${shortUrl}" target="_blank" style="color: var(--accent-red); text-decoration: none;">${shortUrl}</a>`;
+            } else {
+              shortenedUrlDisplay.textContent = 'Error: Could not shorten URL. ' + (data.errormessage || '');
+              shortenedUrlDisplay.style.color = '#FF4136';
+            }
+          } catch (error) {
+            shortenedUrlDisplay.textContent = 'Error: Check your network connection or try a different URL.';
+            shortenedUrlDisplay.style.color = '#FF4136';
+          }
+        } else {
+          shortenedUrlDisplay.textContent = 'Please enter a valid URL.';
+          shortenedUrlDisplay.style.color = '#FF4136';
+        }
+      });
+    }
+
+    if (utility === 'calculator') {
+        const calculatorInput = document.getElementById('calculator-input');
+        const calculatorGrid = document.querySelector('.calculator-grid');
+        const historyContainer = document.getElementById('calculator-history');
+
+        let currentExpression = '0';
+        let history = [];
+
+        function renderHistory() {
+          historyContainer.innerHTML = '<h4>History</h4>';
+          if (history.length === 0) {
+            historyContainer.innerHTML += '<p>No history yet.</p>';
+            return;
+          }
+          history.forEach((item, index) => {
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            historyItem.innerHTML = `
+                <span>${item.expression} = ${item.result}</span>
+                <div class="history-item-buttons">
+                    <button class="copy-btn" data-expression="${item.expression}"><i class="fas fa-copy"></i></button>
+                    <button class="delete-btn" data-index="${index}"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            `;
+            historyContainer.appendChild(historyItem);
+            historyItem.addEventListener('click', (e) => {
+              // Only load expression if a button wasn't clicked
+              if (!e.target.closest('button')) {
+                currentExpression = item.expression;
+                calculatorInput.value = currentExpression;
+              }
+            });
+          });
+        }
+
+        function append(value) {
+            if (currentExpression === '0') {
+                currentExpression = value;
+            } else {
+                currentExpression += value;
+            }
+            calculatorInput.value = currentExpression;
+        }
+
+        function clearDisplay() {
+            currentExpression = '0';
+            calculatorInput.value = currentExpression;
+        }
+
+        function calculate() {
+            try {
+                let expr = currentExpression.replace(/÷/g, '/').replace(/×/g, '*').replace(/xʸ/g, '^');
+
+                // Use math.js for evaluation
+                const result = math.evaluate(expr);
+
+                // Save to history before clearing
+                history.push({ expression: currentExpression, result: result });
+                if (history.length > 5) { // Keep history manageable
+                    history.shift();
+                }
+                renderHistory();
+
+                currentExpression = result.toString();
+                calculatorInput.value = currentExpression;
+            } catch (e) {
+                currentExpression = 'Error';
+                calculatorInput.value = currentExpression;
+            }
+        }
+
+        // Event delegation on the calculator grid
+        if (calculatorGrid) {
+            calculatorGrid.addEventListener('click', (e) => {
+                const button = e.target.closest('.calc-button');
+                if (button) {
+                    const value = button.dataset.value;
+                    if (value === 'AC') {
+                        clearDisplay();
+                    } else if (value === '=') {
+                        calculate();
+                    } else {
+                        append(value);
+                    }
+                }
+            });
+        }
+
+        // History button handlers (using delegation)
+        historyContainer.addEventListener('click', (e) => {
+            const copyBtn = e.target.closest('.copy-btn');
+            const deleteBtn = e.target.closest('.delete-btn');
+
+            if (copyBtn) {
+                const expressionToCopy = copyBtn.dataset.expression;
+                const textarea = document.createElement('textarea');
+                textarea.value = expressionToCopy;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            } else if (deleteBtn) {
+                const index = parseInt(deleteBtn.dataset.index, 10);
+                history.splice(index, 1);
+                renderHistory();
+            }
+        });
+
+        // Initial setup
+        clearDisplay();
+        renderHistory();
+    }
+
+    if (utility === 'password-generator') {
+        const lengthInput = document.getElementById('password-length');
+        const lengthValue = document.getElementById('length-value');
+        const uppercaseChar = document.getElementById('uppercase-char');
+        const lowercaseChar = document.getElementById('lowercase-char');
+        const numbersChar = document.getElementById('numbers-char');
+        const symbolsChar = document.getElementById('symbols-char');
+        const spaceChar = document.getElementById('space-char');
+        const customCharToggle = document.getElementById('custom-char-toggle');
+        const customCharsInput = document.getElementById('custom-chars');
+        const avoidSimilar = document.getElementById('avoid-similar');
+        const avoidRepeat = document.getElementById('avoid-repeat');
+        const numPasswordsInput = document.getElementById('num-passwords');
+        const generatePasswordBtn = document.getElementById('generate-password-btn');
+        const generatedPasswords = document.getElementById('generated-passwords');
+        const strengthBar = document.getElementById('strength-bar');
+        const strengthText = document.getElementById('strength-text');
+
+        const similarChars = 'oO0lI1';
+        const symbols = '!@#$%^&*()-_=+[]{}|;:,.<>?';
+
+        function getRandomSecureInt(min, max) {
+            const range = max - min + 1;
+            const array = new Uint32Array(1);
+            window.crypto.getRandomValues(array);
+            return min + (array[0] % range);
+        }
+
+        function generatePassword() {
+            let characters = '';
+            let requiredChars = [];
+
+            if (uppercaseChar.checked) {
+                characters += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                requiredChars.push('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+            }
+            if (lowercaseChar.checked) {
+                characters += 'abcdefghijklmnopqrstuvwxyz';
+                requiredChars.push('abcdefghijklmnopqrstuvwxyz');
+            }
+            if (numbersChar.checked) {
+                characters += '0123456789';
+                requiredChars.push('0123456789');
+            }
+            if (symbolsChar.checked) {
+                characters += symbols;
+                requiredChars.push(symbols);
+            }
+            if (spaceChar.checked) {
+                characters += ' ';
+            }
+            if (customCharToggle.checked) {
+                characters += customCharsInput.value;
+                if (customCharsInput.value) {
+                    requiredChars.push(customCharsInput.value);
+                }
+            }
+
+            if (avoidSimilar.checked) {
+                characters = characters.split('').filter(char => !similarChars.includes(char)).join('');
+                requiredChars = requiredChars.map(set => set.split('').filter(char => !similarChars.includes(char)).join(''));
+            }
+
+            if (characters.length === 0) {
+                return 'Select character sets.';
+            }
+
+            const passwordLength = parseInt(lengthInput.value, 10);
+            let password = '';
+            let usedChars = new Set();
+
+            // Add required characters first
+            requiredChars.forEach(set => {
+                if (set.length > 0) {
+                    const char = set[getRandomSecureInt(0, set.length - 1)];
+                    password += char;
+                    if (avoidRepeat.checked) usedChars.add(char);
+                }
+            });
+
+            // Fill the rest of the password
+            const remainingLength = passwordLength - password.length;
+            for (let i = 0; i < remainingLength; i++) {
+                let char;
+                do {
+                    char = characters[getRandomSecureInt(0, characters.length - 1)];
+                } while (avoidRepeat.checked && usedChars.has(char));
+
+                password += char;
+                if (avoidRepeat.checked) usedChars.add(char);
+            }
+
+            // Shuffle the password to randomize the order
+            password = password.split('').sort(() => 0.5 - Math.random()).join('');
+
+            return password;
+        }
+
+        function updateStrength() {
+            let score = 0;
+            const passwordLength = parseInt(lengthInput.value, 10);
+            const hasUppercase = uppercaseChar.checked;
+            const hasLowercase = lowercaseChar.checked;
+            const hasNumbers = numbersChar.checked;
+            const hasSymbols = symbolsChar.checked;
+            const hasSpaces = spaceChar.checked;
+            const hasCustom = customCharToggle.checked && customCharsInput.value.length > 0;
+
+            if (passwordLength >= 8) score += 1;
+            if (passwordLength >= 12) score += 1;
+            if (passwordLength >= 16) score += 1;
+
+            let charTypes = 0;
+            if (hasUppercase) charTypes++;
+            if (hasLowercase) charTypes++;
+            if (hasNumbers) charTypes++;
+            if (hasSymbols) charTypes++;
+            if (hasCustom) charTypes++;
+            if (hasSpaces) charTypes++;
+
+            score += Math.min(charTypes, 4);
+
+            let strengthClass = 'strength-weak';
+            let strengthTextValue = 'Weak';
+            if (score >= 4) { strengthClass = 'strength-medium'; strengthTextValue = 'Medium'; }
+            if (score >= 6) { strengthClass = 'strength-strong'; strengthTextValue = 'Strong'; }
+            if (score >= 8) { strengthClass = 'strength-unbreakable'; strengthTextValue = 'Unbreakable'; }
+
+            strengthBar.style.width = `${(score / 9) * 100}%`;
+            strengthBar.className = `strength-bar ${strengthClass}`;
+            strengthText.textContent = strengthTextValue;
+        }
+
+        function generateAndDisplayPasswords() {
+            generatedPasswords.innerHTML = '';
+            const numToGenerate = parseInt(numPasswordsInput.value, 10);
+            let allPasswords = [];
+
+            for (let i = 0; i < numToGenerate; i++) {
+                const password = generatePassword();
+                allPasswords.push(password);
+                const passwordItem = document.createElement('div');
+                passwordItem.className = 'password-item';
+                passwordItem.innerHTML = `
+                    <span>${password}</span>
+                    <button class="copy-btn" data-password="${password}"><i class="fas fa-copy"></i></button>
+                `;
+                generatedPasswords.appendChild(passwordItem);
+            }
+
+            if (numToGenerate > 1) {
+                const copyAllBtn = document.createElement('button');
+                copyAllBtn.className = 'utility-button';
+                copyAllBtn.id = 'copy-all-btn';
+                copyAllBtn.innerHTML = `<div class="icon-content"><i class="fas fa-copy"></i></div>`;
+                copyAllBtn.onclick = () => {
+                    const textToCopy = allPasswords.join('\n');
+                    const textarea = document.createElement('textarea');
+                    textarea.value = textToCopy;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                };
+                generatedPasswords.appendChild(copyAllBtn);
+            }
+        }
+
+        // Initial setup and event listeners
+        lengthInput.addEventListener('input', () => {
+            lengthValue.textContent = lengthInput.value;
+            updateStrength();
+        });
+
+        customCharToggle.addEventListener('change', () => {
+            customCharsInput.style.display = customCharToggle.checked ? 'block' : 'none';
+        });
+
+        generatePasswordBtn.addEventListener('click', generateAndDisplayPasswords);
+
+        document.addEventListener('change', (e) => {
+            // Check if the change happened on an element inside a checkbox container
+            if (e.target.closest('.custom-checkbox-container') || e.target.id === 'password-length') {
+                updateStrength();
+            }
+        });
+
+        generatedPasswords.addEventListener('click', (e) => {
+            const copyBtn = e.target.closest('.copy-btn');
+            if (copyBtn) {
+                const passwordToCopy = copyBtn.dataset.password;
+                const textarea = document.createElement('textarea');
+                textarea.value = passwordToCopy;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            }
+        });
+
+        updateStrength(); // Initial strength check
+    }
+
+    if (utility === 'stopwatch') {
+      const stopwatchDisplay = document.getElementById('stopwatch-display');
+      const startStopwatchButton = document.getElementById('start-stopwatch');
+      const stopStopwatchButton = document.getElementById('stop-stopwatch');
+      const resetStopwatchButton = document.getElementById('reset-stopwatch');
+      let startTime = 0;
+      let elapsedTime = 0;
+      let stopwatchInterval;
+
+      function formatTime(ms) {
+        const totalSeconds = Math.floor(ms / 1000);
+        const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+        const seconds = String(totalSeconds % 60).padStart(2, '0');
+        const milliseconds = String(ms % 1000).padStart(3, '0');
+        return `${minutes}:${seconds}:${milliseconds}`;
+      }
+
+      startStopwatchButton.addEventListener('click', () => {
+        if (!stopwatchInterval) {
+          startTime = Date.now() - elapsedTime;
+          stopwatchInterval = setInterval(() => {
+            elapsedTime = Date.now() - startTime;
+            stopwatchDisplay.textContent = formatTime(elapsedTime);
+          }, 10);
+        }
+      });
+
+      stopStopwatchButton.addEventListener('click', () => {
+        clearInterval(stopwatchInterval);
+        stopwatchInterval = null;
+      });
+
+      resetStopwatchButton.addEventListener('click', () => {
+        clearInterval(stopwatchInterval);
+        stopwatchInterval = null;
+        elapsedTime = 0;
+        stopwatchDisplay.textContent = '00:00:00.000';
+      });
+    }
+
+    if (utility === 'timer') {
+      const minutesInput = document.getElementById('minutes-input');
+      const secondsInput = document.getElementById('seconds-input');
+      const timerDisplay = document.getElementById('timer-display');
+      const startTimerButton = document.getElementById('start-timer');
+      const stopTimerButton = document.getElementById('stop-timer');
+      const resetTimerButton = document.getElementById('reset-timer');
+      let totalTime = 0;
+      let timerInterval;
+
+      function updateDisplay(time) {
+        const minutes = String(Math.floor(time / 60)).padStart(2, '0');
+        const seconds = String(time % 60).padStart(2, '0');
+        timerDisplay.textContent = `${minutes}:${seconds}`;
+      }
+
+      function startCountdown() {
+        if (totalTime <= 0) {
+          // Instead of alert, use a custom message box
+          const messageBox = document.createElement('div');
+          messageBox.style.cssText = `
+              position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+              background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+              z-index: 9999; text-align: center;
+          `;
+          messageBox.innerHTML = `
+              <h3>Time's Up!</h3>
+              <p>The timer has finished.</p>
+              <button onclick="this.parentElement.remove()">OK</button>
+          `;
+          document.body.appendChild(messageBox);
+
+          clearInterval(timerInterval);
+          timerInterval = null;
+          updateDisplay(0);
+          return;
+        }
+        totalTime--;
+        updateDisplay(totalTime);
+      }
+
+      startTimerButton.addEventListener('click', () => {
+        if (!timerInterval) {
+          const minutes = parseInt(minutesInput.value) || 0;
+          const seconds = parseInt(secondsInput.value) || 0;
+          totalTime = (minutes * 60) + seconds;
+
+          if (totalTime > 0) {
+            timerInterval = setInterval(startCountdown, 1000);
+          }
+        }
+      });
+
+      stopTimerButton.addEventListener('click', () => {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      });
+
+      resetTimerButton.addEventListener('click', () => {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        minutesInput.value = '';
+        secondsInput.value = '';
+        totalTime = 0;
+        updateDisplay(0);
+      });
+
+      updateDisplay(0);
+    }
+
+
+    if (utility === 'qr-generator') {
+      const qrInput = document.getElementById('qr-input');
+      const generateQrButton = document.getElementById('generate-qr');
+      const qrContainer = document.getElementById('qr-code-container');
+      let qrcode = null;
+
+      generateQrButton.addEventListener('click', () => {
+        const text = qrInput.value.trim();
+        if (text) {
+          qrContainer.innerHTML = '';
+          if (qrcode) {
+            qrcode.clear();
+          }
+
+          qrcode = new QRCode(qrContainer, {
+            text: text,
+            width: 150,
+            height: 150,
+            colorDark : document.body.classList.contains('dark-mode') ? "#fff" : "#000",
+            colorLight : "transparent",
+            correctLevel : QRCode.CorrectLevel.H
+          });
+        } else {
+          qrContainer.innerHTML = '<p style="color: #FF4136;">Please enter text to generate a QR code.</p>';
+        }
+      });
+    }
+
+    if (utility === 'text-to-speech') {
+        const ttsInput = document.getElementById('tts-input');
+        const speakButton = document.getElementById('speak-button');
+        const stopSpeechButton = document.getElementById('stop-speech-button');
+
+        speakButton.addEventListener('click', () => {
+            const text = ttsInput.value.trim();
+            if (text) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                window.speechSynthesis.speak(utterance);
+            }
+        });
+
+        stopSpeechButton.addEventListener('click', () => {
+            window.speechSynthesis.cancel();
+        });
+    }
+
+    if (utility === 'color-picker') {
+        const colorInput = document.getElementById('color-input');
+        const colorDisplay = document.getElementById('color-display');
+        const colorValue = document.getElementById('color-value');
+
+        colorInput.addEventListener('input', () => {
+            const color = colorInput.value;
+            colorDisplay.style.backgroundColor = color;
+            colorValue.textContent = color;
+        });
+
+        colorInput.value = '#000000';
+        colorDisplay.style.backgroundColor = '#000000';
+    }
+  }
+</script>
+</body>
+</html>
