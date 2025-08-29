@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaryWEB | Typing Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Satisfy&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-dark: #0c0c0c;
+            --primary-light: #ffffff;
+            --accent-red: #FF4136;
+            --accent-yellow: #FFDC00;
+            --transition-slow: 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            --transition-fast: 0.3s ease;
+            --section-spacing: 80px;
+            --user-tile-bg: #ffffff;
+            --font-color-dark: #776e65;
+            --border-height: 2px;
+            --border-before-color: #ccc;
+            --border-after-color: #333;
+        }
+
+        body.dark-mode {
+            --primary-dark: #0c0c0c;
+            --primary-light: #ffffff;
+            --user-tile-bg: #222;
+            --border-before-color: #555;
+            --border-after-color: #fff;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body { font-family: 'Inter', sans-serif; color: var(--primary-dark); background-color: var(--primary-light); overflow-x:hidden; line-height:1.6; transition: background-color 0.5s ease; }
+
+        body.dark-mode { background-color: var(--primary-dark); color: var(--primary-light); }
+
+        h1,h2,h3,h4,h5,h6 { font-family:'Space Grotesk', sans-serif; font-weight:600; letter-spacing:-0.02em; }
+
+        .container { max-width:1440px; margin:0 auto; padding:0 20px; }
+
+        /* Navigation */
+        nav { position:fixed; top:0; left:0; width:100%; display:flex; justify-content:space-between; align-items:center; padding:16px 20px; z-index:1000; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); transition: var(--transition-fast); box-shadow:0 2px 10px rgba(0,0,0,0.1);}
+        body.dark-mode nav { background: rgba(12,12,12,0.8); box-shadow:0 2px 10px rgba(255,255,255,0.1); }
+
+        .nav-left { display:flex; align-items:center; gap:10px; width:100%; justify-content:space-between; padding-right:20px; }
+        .logo { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:24px; cursor:pointer; text-decoration:none; color:inherit; white-space:nowrap; }
+        .logo-message { font-family:'Satisfy', cursive; font-size:1.5rem; font-weight:500; color:#666; flex-grow:1; text-align:center; transition:color 0.3s ease; }
+
+        .mode-toggle { width:50px; height:24px; background:#e0e0e0; border-radius:12px; position:relative; cursor:pointer; transition:var(--transition-fast); flex-shrink:0; }
+        body.dark-mode .mode-toggle { background:#333; }
+        .toggle-thumb { width:20px; height:20px; background: var(--primary-light); border-radius:50%; position:absolute; top:2px; left:2px; transition:transform 0.3s ease; }
+        body.dark-mode .toggle-thumb { transform: translateX(26px); background: var(--primary-dark); }
+
+        /* Main Section */
+        .section-title { font-size:2.5rem; margin-bottom:30px; text-align:center; position:relative; }
+        .section-title::after { content:''; position:absolute; bottom:-10px; left:50%; transform:translateX(-50%); width:80px; height:4px; background: linear-gradient(90deg, var(--accent-red), var(--accent-yellow)); border-radius:2px; }
+
+        .game-section { display:flex; flex-direction:column; align-items:center; justify-content:flex-start; min-height:100vh; padding:var(--section-spacing) 0; padding-top:100px; }
+
+        /* Game Container */
+        .game-container { display:flex; flex-direction:column; align-items:center; gap:20px; width:100%; max-width:600px; padding:20px; background-color: var(--user-tile-bg); border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+        body.dark-mode .game-container { background-color: #222; }
+
+        #text-passage { font-size:1.2rem; padding:15px; background:#f0f0f0; border-radius:8px; width:100%; text-align:left; min-height:80px; line-height:1.5; }
+        body.dark-mode #text-passage { background:#333; }
+
+        /* Input styles */
+        .form-control {
+            position: relative;
+            width: 100%;
+        }
+        .input {
+            color: var(--primary-dark);
+            font-size: 1rem;
+            background-color: transparent;
+            width: 100%;
+            box-sizing: border-box;
+            padding-inline: 0.5em;
+            padding-block: 0.7em;
+            border: none;
+            border-bottom: var(--border-height) solid var(--border-before-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        body.dark-mode .input {
+            color: var(--primary-light);
+            box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+        }
+        .input-border {
+            position: absolute;
+            background: var(--border-after-color);
+            width: 0%;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            transition: width 0.3s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+        }
+        .input:focus {
+            outline: none;
+        }
+        .input:focus + .input-border {
+            width: 100%;
+        }
+        .input-alt {
+            font-size: 1.2rem;
+            padding-inline: 1em;
+            padding-block: 0.8em;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        body.dark-mode .input-alt {
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+        }
+        .input-border-alt {
+            height: 3px;
+            background: linear-gradient(90deg, #FF6464 0%, #FFBF59 50%, #47C9FF 100%);
+            transition: width 0.4s cubic-bezier(0.42, 0, 0.58, 1.00);
+        }
+        .input-alt:focus + .input-border-alt {
+            width: 100%;
+        }
+
+        /* Stats Cards */
+        #stats {
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+            font-size: 1rem;
+            gap: 20px;
+        }
+
+        .card {
+            --c1: #644dff;
+            --c2: #4836bb;
+            --c3: #654dff63;
+            width: 120px; /* Smaller width */
+            height: 80px; /* Smaller height */
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.2rem; /* Smaller gap */
+            font-size: 0.9em; /* Smaller font size */
+            font-weight: 800;
+            letter-spacing: 1px; /* Smaller letter spacing */
+            color: #fff;
+            background: var(--c1);
+            border: 2px solid var(--c2);
+            border-radius: .75rem;
+            box-shadow: 0 6px 0 var(--c2); /* Smaller shadow */
+            transform: skew(-10deg);
+            transition: all .1s ease;
+            filter: drop-shadow(0 10px 15px var(--c3)); /* Smaller drop-shadow */
+            text-align: center;
+        }
+        .card:active {
+            letter-spacing: 0px;
+            transform: skew(-10deg) translateY(6px); /* Smaller translateY */
+            box-shadow: 0 0 0 var(--c3);
+        }
+        .card h4 {
+            font-size: 0.8rem; /* Smaller font size */
+            margin: 0;
+            font-weight: 600;
+            transform: skew(10deg);
+        }
+        .card span {
+            font-size: 1.2rem; /* Smaller font size */
+            font-weight: 800;
+            transform: skew(10deg);
+        }
+
+        /* Hidden high-scores section */
+        #high-scores {
+            display: none;
+        }
+
+        .correct { color:green; }
+        .incorrect { color:red; }
+
+        /* Button styles */
+        #restart-btn {
+            --main-focus: #2d8cf0;
+            --font-color: #323232;
+            --bg-color-sub: #dedede;
+            --bg-color: #eee;
+            --main-color: #323232;
+            position: relative;
+            width: 150px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            border: 2px solid var(--main-color);
+            box-shadow: 4px 4px var(--main-color);
+            background-color: var(--bg-color);
+            border-radius: 10px;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            text-decoration: none;
+        }
+
+        #restart-btn, #restart-btn .button__icon, #restart-btn .button__text {
+            transition: all 0.3s;
+        }
+
+        #restart-btn .button__text {
+            transform: translateX(30px);
+            color: var(--font-color);
+            font-weight: 600;
+        }
+
+        #restart-btn .button__icon {
+            position: absolute;
+            transform: translateX(109px);
+            height: 100%;
+            width: 39px;
+            background-color: var(--bg-color-sub);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #restart-btn .svg {
+            width: 20px;
+            fill: var(--main-color);
+        }
+
+        #restart-btn:hover {
+            background: var(--bg-color);
+        }
+
+        #restart-btn:hover .button__text {
+            color: transparent;
+        }
+
+        #restart-btn:hover .button__icon {
+            width: 148px;
+            transform: translateX(0);
+        }
+
+        #restart-btn:active {
+            transform: translate(3px, 3px);
+            box-shadow: 0px 0px var(--main-color);
+        }
+
+        /* Dark mode button styling */
+        body.dark-mode #restart-btn {
+            --font-color: #fff;
+            --bg-color-sub: #333;
+            --bg-color: #1a1a1a;
+            --main-color: #fff;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .section-title {
+                font-size: 1.8rem;
+            }
+            .nav-left .logo-message {
+                display: none;
+            }
+            .game-container {
+                padding: 15px;
+            }
+            #text-passage {
+                font-size: 1rem;
+            }
+            #input-area {
+                font-size: 1rem;
+            }
+            #stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .card {
+                width: 100%;
+                height: 80px;
+                transform: skew(0);
+                box-shadow: 0 4px 0 var(--c2);
+            }
+            .card:active {
+                transform: translateY(4px);
+                box-shadow: 0 0 0 var(--c3);
+            }
+            .card h4, .card span {
+                transform: skew(0);
+            }
+        }
+    </style>
+</head>
+<body>
+<nav>
+    <div class="nav-left">
+        <a href="index.html" class="logo">WaryWEB</a>
+        <span class="logo-message">Type! you freak!</span>
+    </div>
+    <div class="nav-actions">
+        <div class="mode-toggle" id="modeToggle">
+            <div class="toggle-thumb"></div>
+        </div>
+    </div>
+</nav>
+
+<section id="game-section" class="game-section">
+    <div class="container">
+        <h2 class="section-title">Typing Speed & Accuracy Game</h2>
+        <div class="game-container">
+            <div id="text-passage"></div>
+            <div class="form-control">
+                <input type="text" id="input-area" class="input input-alt" placeholder="Start typing here...">
+                <span class="input-border input-border-alt"></span>
+            </div>
+            <div id="stats">
+                <div class="card">
+                    <div>
+                        <h4>Time</h4>
+                        <span id="timer">60</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div>
+                        <h4>WPM</h4>
+                        <span id="wpm">0</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div>
+                        <h4>Accuracy</h4>
+                        <span id="accuracy">100</span>
+                    </div>
+                </div>
+            </div>
+            <div id="high-scores">
+                <h3>Top 5 High Scores</h3>
+                <ol id="score-list"></ol>
+            </div>
+            <button id="restart-btn" class="button">
+                <span class="button__text">Play Again</span>
+                <span class="button__icon">
+                <svg xmlns="http://www.w3.org/2000/svg" class="svg" viewBox="0 0 512 512">
+                  <path d="M485.4 145.4c-9.5-9.5-24.6-9.5-34.1 0l-37.9 37.9c-24.1-13.6-51.1-21.3-79.4-21.3-99.4 0-180 80.6-180 180s80.6 180 180 180 180-80.6 180-180c0-28.3-7.7-55.3-21.3-79.4l37.9-37.9c9.5-9.5 9.5-24.6 0-34.1zM280 400c0 13.3-10.7 24-24 24s-24-10.7-24-24v-88c0-13.3 10.7-24 24-24s24 10.7 24 24v88z" fill="currentColor"/>
+                </svg>
+              </span>
+            </button>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Dark Mode Toggle
+    const modeToggle = document.getElementById('modeToggle');
+    const body = document.body;
+    function applySavedTheme() {
+      const savedTheme = localStorage.getItem('theme');
+      if(savedTheme === 'dark') body.classList.add('dark-mode');
+    }
+    applySavedTheme();
+    modeToggle.addEventListener('click', () => {
+      body.classList.toggle('dark-mode');
+      localStorage.setItem('theme', body.classList.contains('dark-mode') ? 'dark':'light');
+    });
+
+    /* ---------------------- GAME DATA ---------------------- */
+    const passages = [
+  "Typing faster is not only about speed but also accuracy, because rushing often creates errors that slow progress.",
+  "The internet has changed the way humans learn, work, and connect, creating opportunities that never existed before.",
+  "Learning a new skill requires patience, practice, and perseverance, since real mastery never happens in a single day.",
+  "Technology grows rapidly, demanding continuous learning, adaptation, and curiosity from everyone who wants to remain relevant today.",
+  "Programming languages differ in syntax, yet the logic behind them often follows universal principles that learners can transfer.",
+  "Errors are not failures but feedback that guide you toward improvement, making every mistake a hidden opportunity to grow.",
+  "Discipline and persistence beat talent and natural ability, because consistent practice creates results that cannot be achieved overnight.",
+  "A balanced routine of learning, rest, and reflection ensures that your progress remains steady without burning yourself completely.",
+  "Creativity combines imagination and structured logic, allowing people to design innovative solutions for problems that appear nearly impossible.",
+  "Patience is essential for mastering typing skills, since rushing to complete sentences often creates confusion and wasted effort later.",
+  "Focus improves with deliberate practice, as the brain learns to ignore distractions and channel energy toward a single task.",
+  "The habit of practicing daily builds momentum, creating lasting improvements through repetition that reinforces both muscle memory and confidence.",
+  "Typing fluency reduces the gap between thought and expression, helping writers share their ideas more quickly with greater clarity.",
+  "Technology continues to transform society, and those who adapt to change early often benefit the most from new opportunities.",
+  "Every expert once struggled with the basics, but their determination to keep practicing is what separated them from beginners.",
+  "Clear goals create motivation and direction, allowing learners to focus their energy on meaningful progress rather than wasted effort.",
+  "Typing speed tests are useful tools, but accuracy should remain your priority because mistakes slow you down in practice.",
+  "Learning through challenges strengthens both skill and character, teaching valuable lessons about persistence, patience, and overcoming frustration effectively.",
+  "Consistent effort creates progress that builds over time, proving that small actions taken daily lead to massive achievements eventually.",
+  "The best way to build typing accuracy is slowing down, paying attention, and only increasing speed once mistakes decrease.",
+  "Ergonomic posture prevents fatigue and injuries, ensuring that long practice sessions remain comfortable while protecting your hands and wrists.",
+  "Every written word carries power, shaping communication, inspiring readers, and influencing people’s ideas across cultures and generations around us.",
+  "Motivation fades over time, but habits stay strong, which is why developing consistency matters more than bursts of energy.",
+  "Typing well is not only useful for work but also enhances creative writing, study, communication, and overall digital literacy.",
+  "Challenges might frustrate learners, but each obstacle builds resilience, which eventually becomes the foundation for long-lasting growth and confidence.",
+  "Your mind and hands develop synchronization through typing, making expression smoother while allowing creative ideas to flow more naturally.",
+  "Even small improvements compound over time, showing that persistence in typing eventually results in noticeable speed and accuracy gains.",
+  "The keyboard connects human thought to technology, serving as a bridge that allows ideas to become digital creations instantly.",
+  "Great accomplishments rarely happen quickly; rather, they result from years of steady improvement, sacrifice, and endless dedication to progress.",
+  "Writers use typing not just as a mechanical skill, but as a tool for expressing imagination, passion, and knowledge.",
+  "Software development requires teamwork and patience, since solving complex problems alone is difficult, while collaboration makes success much easier.",
+  "Typing without looking at the keyboard strengthens your memory, creating muscle patterns that eventually make the process feel automatic.",
+  "When you practice typing, your focus improves naturally, because your brain learns to channel attention into one consistent stream.",
+  "The rhythm of typing is like music, where steady flow and accuracy create harmony between thoughts and physical actions.",
+  "Concentration builds gradually, not instantly, which is why practice sessions should be short, regular, and free from digital distractions.",
+  "Each mistake contains valuable information, revealing weaknesses that, once fixed, transform into strengths through consistent, mindful practice sessions daily.",
+  "Productivity increases significantly when typing skills improve, because less time is wasted correcting mistakes or struggling with slow speed.",
+  "Knowledge grows when shared with others, and teaching typing techniques to beginners can help reinforce your own understanding deeply.",
+  "Typing requires both mental and physical coordination, engaging the brain and hands in synchronization to produce effective communication quickly.",
+  "Writers and programmers rely on strong typing skills to reduce barriers between their thoughts and the final digital creation.",
+  "Every time you type a sentence, you are reinforcing neural pathways, building the muscle memory needed for true fluency.",
+  "Typing accurately first and increasing speed later ensures that the habit of writing without errors becomes your permanent foundation.",
+  "Learning a new language through typing builds vocabulary faster, because repetition strengthens memory while improving fluency in communication.",
+  "Typing practice works best when it is consistent, challenging enough to push you forward, and enjoyable to maintain motivation.",
+  "Technology rewards those who adapt quickly, and typing proficiency is one of the most important digital skills in today’s era.",
+  "Your progress might feel slow initially, but with persistence you eventually notice remarkable improvements in both speed and confidence.",
+  "Every writer, programmer, and student benefits from typing efficiently, since it saves time and reduces effort across all digital tasks.",
+  "The keyboard is more than plastic keys; it is a doorway to knowledge, creativity, and opportunities for endless growth.",
+  "Typing quickly frees your mind to focus on ideas rather than keystrokes, making creativity flow without unnecessary interruptions daily.",
+  "Regular typing exercises strengthen both mental focus and hand agility, resulting in smoother, faster, and more efficient performance overall.",
+  "Consistency transforms typing practice into mastery, showing how small, repeated actions shape habits that eventually define long-term success.",
+  "Even professional writers revise multiple drafts, proving that perfection is less important than expressing ideas freely and refining later.",
+  "Typing fluency creates confidence in communication, allowing thoughts to be expressed with clarity, speed, and accuracy in any context.",
+  "Discipline ensures progress, while distractions delay growth, reminding learners that focus and commitment are the keys to lasting improvement.",
+  "Developing speed requires trust in your fingers, letting them move naturally without hesitation, as muscle memory grows stronger daily.",
+  "The habit of typing every day builds momentum, and over time small efforts accumulate into remarkable progress beyond expectations.",
+  "Even advanced typists continue practicing, since mastery is never permanent, and skills must remain sharp to handle evolving challenges.",
+  "Perseverance makes difficult things achievable, proving that determination and consistent effort can transform even the weakest skills into strengths."
+];
+
+
+    let currentPassage = "";
+    let timeLeft = 60;
+    let timerInterval = null;
+    let totalTyped = 0;
+    let correctTyped = 0;
+
+    const passageDiv = document.getElementById("text-passage");
+    const inputArea = document.getElementById("input-area");
+    const timerSpan = document.getElementById("timer");
+    const wpmSpan = document.getElementById("wpm");
+    const accuracySpan = document.getElementById("accuracy");
+    const scoreList = document.getElementById("score-list");
+    const restartBtn = document.getElementById("restart-btn");
+
+    function getHighScores() {
+      return JSON.parse(localStorage.getItem("typingHighScores") || "[]");
+    }
+
+    function saveHighScore(name, wpm) {
+      let scores = getHighScores();
+      scores.push({name, wpm});
+      scores.sort((a,b)=>b.wpm - a.wpm);
+      scores = scores.slice(0,5);
+      localStorage.setItem("typingHighScores", JSON.stringify(scores));
+      displayHighScores();
+    }
+
+    function displayHighScores() {
+      const scores = getHighScores();
+      scoreList.innerHTML = "";
+      scores.forEach(score=>{
+        const li = document.createElement("li");
+        li.textContent = `${score.name} - ${score.wpm} WPM`;
+        scoreList.appendChild(li);
+      });
+    }
+
+    function endGame() {
+        clearInterval(timerInterval);
+        inputArea.disabled = true;
+        updateStats();
+
+        // Get final stats
+        const finalWPM = parseInt(wpmSpan.textContent);
+        const finalAccuracy = parseInt(accuracySpan.textContent);
+
+        setTimeout(() => {
+            alert(`Time's up! Your results are:\nWords per minute (WPM): ${finalWPM}\nAccuracy: ${finalAccuracy}%`);
+            const name = prompt("🎉 Game over! Enter your name for high scores:");
+            if (name) {
+                saveHighScore(name, finalWPM);
+            }
+        }, 100);
+    }
+
+    function startGame() {
+        inputArea.value = "";
+        inputArea.disabled = false;
+        totalTyped = 0;
+        correctTyped = 0;
+        timeLeft = 60;
+        timerSpan.textContent = timeLeft;
+        wpmSpan.textContent = 0;
+        accuracySpan.textContent = 100;
+
+        currentPassage = passages[Math.floor(Math.random() * passages.length)];
+        passageDiv.innerHTML = "";
+        currentPassage.split("").forEach(char => {
+            const span = document.createElement("span");
+            span.textContent = char;
+            passageDiv.appendChild(span);
+        });
+
+        clearInterval(timerInterval);
+        timerInterval = setInterval(updateTimer, 1000);
+        inputArea.focus();
+    }
+
+    function updateTimer() {
+        if (timeLeft > 0) {
+            timeLeft--;
+            timerSpan.textContent = timeLeft;
+            updateStats();
+        } else {
+            endGame();
+        }
+    }
+
+    function updateStats() {
+      const elapsed = 60 - timeLeft;
+      const wordsTyped = inputArea.value.trim().split(/\s+/).filter(word => word !== "").length;
+      const wpm = Math.round((wordsTyped / elapsed) * 60) || 0;
+      wpmSpan.textContent = wpm;
+      const accuracy = Math.round((correctTyped / totalTyped) * 100) || 100;
+      accuracySpan.textContent = accuracy;
+    }
+
+    function checkTyping() {
+      const input = inputArea.value;
+      totalTyped = input.length;
+      correctTyped = 0;
+      const spans = passageDiv.querySelectorAll("span");
+
+      spans.forEach((span, index) => {
+        const char = input[index];
+        if (char === null) {
+          span.className = "";
+        } else if (char === span.textContent) {
+          span.className = "correct";
+          correctTyped++;
+        } else {
+          span.className = "incorrect";
+        }
+      });
+
+      updateStats();
+
+      if (input.length === currentPassage.length) {
+        endGame();
+      }
+    }
+
+    inputArea.addEventListener("input", checkTyping);
+    restartBtn.addEventListener("click", startGame);
+
+    // Initial call to start the game and hide the high score list
+    document.getElementById("high-scores").style.display = 'none';
+    startGame();
+</script>
+</body>
+</html>
