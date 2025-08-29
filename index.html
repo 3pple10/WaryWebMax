@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WaryWEB | Gaming and Utilities</title>
+  <link rel="manifest" href="manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
@@ -332,7 +333,7 @@
         justify-items: center;
     }
 
-    /* About Section (repositioned) */
+    /* About Section */
     .about {
         padding: var(--section-spacing) 0;
     }
@@ -352,51 +353,105 @@
         margin-bottom: 24px;
     }
 
-    .about-visual {
-        position: relative;
-        height: 400px;
-        perspective: 1000px;
+    /* AI Matrix Loader */
+    .ai-matrix-loader {
+      width: 120px;
+      height: 160px;
+      margin: 30px auto;
+      position: relative;
+      perspective: 800px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
     }
 
-    .rotating-cube {
-        width: 300px;
-        height: 300px;
-        position: relative;
-        margin: 0 auto;
-        transform-style: preserve-3d;
-        animation: rotate 20s infinite linear;
+    .digit {
+      color: #00ff88;
+      font-family: monospace;
+      font-size: 18px;
+      text-align: center;
+      text-shadow: 0 0 5px #00ff88;
+      animation:
+        matrix-fall 2s infinite,
+        matrix-flicker 0.5s infinite;
+      opacity: 0;
     }
 
-    .cube-face {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        border: 2px solid rgba(0, 240, 255, 0.5);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 2rem;
-        font-weight: bold;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        overflow: hidden;
+    .digit:nth-child(1) {
+      animation-delay: 0.1s;
+    }
+    .digit:nth-child(2) {
+      animation-delay: 0.3s;
+    }
+    .digit:nth-child(3) {
+      animation-delay: 0.5s;
+    }
+    .digit:nth-child(4) {
+      animation-delay: 0.7s;
+    }
+    .digit:nth-child(5) {
+      animation-delay: 0.9s;
+    }
+    .digit:nth-child(6) {
+      animation-delay: 1.1s;
+    }
+    .digit:nth-child(7) {
+      animation-delay: 1.3s;
+    }
+    .digit:nth-child(8) {
+      animation-delay: 1.5s;
     }
 
-    body.dark-mode .cube-face {
-        background: rgba(12, 12, 12, 0.1);
-        border: 2px solid rgba(255, 0, 246, 0.5);
+    .glow {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(
+        circle,
+        rgba(0, 255, 136, 0.1) 0%,
+        transparent 70%
+      );
+      animation: matrix-pulse 2s infinite;
     }
 
-    .front { transform: translateZ(150px); }
-    .back { transform: translateZ(-150px) rotateY(180deg); }
-    .right { transform: translateX(150px) rotateY(90deg); }
-    .left { transform: translateX(-150px) rotateY(-90deg); }
-    .top { transform: translateY(-150px) rotateX(90deg); }
-    .bottom { transform: translateY(150px) rotateX(-90deg); }
+    @keyframes matrix-fall {
+      0% {
+        transform: translateY(-50px) rotateX(90deg);
+        opacity: 0;
+      }
+      20%,
+      80% {
+        transform: translateY(0) rotateX(0deg);
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateY(50px) rotateX(-90deg);
+        opacity: 0;
+      }
+    }
 
-    @keyframes rotate {
-        from { transform: rotateX(0) rotateY(0) rotateZ(0); }
-        to { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
+    @keyframes matrix-flicker {
+      0%,
+      19%,
+      21%,
+      100% {
+        opacity: 0.8;
+      }
+      20% {
+        opacity: 0.2;
+      }
+    }
+
+    @keyframes matrix-pulse {
+      0%,
+      100% {
+        opacity: 0.3;
+      }
+      50% {
+        opacity: 0.7;
+      }
     }
 
     /* Footer */
@@ -622,26 +677,6 @@
             gap: 40px;
         }
 
-        .about-visual {
-            height: 300px;
-        }
-
-        .rotating-cube {
-            width: 250px;
-            height: 250px;
-        }
-
-        .cube-face {
-            transform: translateZ(125px);
-        }
-
-        .front { transform: translateZ(125px); }
-        .back { transform: translateZ(-125px) rotateY(180deg); }
-        .right { transform: translateX(125px) rotateY(90deg); }
-        .left { transform: translateX(-125px) rotateY(-90deg); }
-        .top { transform: translateY(-125px) rotateX(90deg); }
-        .bottom { transform: translateY(125px) rotateX(-90deg); }
-
         .footer-content {
             grid-template-columns: 1fr 1fr;
         }
@@ -735,7 +770,7 @@
 
     .glass-ui-container {
         position: fixed;
-        bottom: 20px;
+        bottom: 40px;
         left: 50%;
         transform: translateX(-50%);
         z-index: 1000;
@@ -916,7 +951,7 @@
     }
     @media (max-width: 768px) {
         .glass-ui-container {
-            bottom: 10px;
+            bottom: 20px;
             padding: 0 10px;
         }
         .nav-icons svg {
@@ -994,15 +1029,16 @@
         <p>Our team of developers and creators is passionate about crafting seamless and enjoyable digital experiences. We focus on building minimalist yet powerful tools and classic games that are easy to pick up and play, with no sign-ups or downloads required.</p>
         <p>Whether you're looking for a quick break with a classic game or need a handy tool for a specific task, WaryWEB is your go-to destination. Our mission is to combine technical precision with user-friendly design to deliver a platform that you'll love using every day.</p>
       </div>
-      <div class="about-visual fade-in delay-1">
-        <div class="rotating-cube">
-          <div class="cube-face front">Code</div>
-          <div class="cube-face back">Design</div>
-          <div class="cube-face right">Fun</div>
-          <div class="cube-face left">Utility</div>
-          <div class="cube-face top">Tech</div>
-          <div class="cube-face bottom">Free</div>
-        </div>
+      <div class="ai-matrix-loader fade-in delay-1">
+        <div class="digit">1</div>
+        <div class="digit">0</div>
+        <div class="digit">1</div>
+        <div class="digit">0</div>
+        <div class="digit">1</div>
+        <div class="digit">0</div>
+        <div class="digit">1</div>
+        <div class="digit">0</div>
+        <div class="glow"></div>
       </div>
     </div>
   </div>
@@ -1057,11 +1093,9 @@
 
 <div class="scroll-top" id="scrollTop">↑</div>
 
-<!-- Apple's Innovative Glass Card UI -->
 <div class="glass-ui-container">
   <div class="bottom-bar">
     <div class="nav-bar">
-      <!-- Games Button -->
       <a href="#games" class="nav-icons" title="Games">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14.5 16.5A.5.5 0 0 1 14 17a.5.5 0 0 1 0-1h.5a.5.5 0 0 1 0 1z"/>
@@ -1081,20 +1115,17 @@
           <path d="M20 14.5a.5.5 0 0 1 0-1h.5a.5.5 0 0 1 0 1h-.5z"/>
         </svg>
       </a>
-      <!-- File Utilities Button -->
       <a href="file-utilities.html" class="nav-icons" title="File Utilities">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M4 11a1 1 0 0 1-1-1V5a2 2 0 0 1 2-2h3.9c.7 0 1.4.3 1.9.8l2.7 2.7c.5.5.8 1.2.8 1.9v2.1a1 1 0 0 1-1 1H4z"/>
           <path d="M21 17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
       </a>
-      <!-- Other Simple Utilities Button -->
       <a href="utilities.html" class="nav-icons" title="Other Simple Utilities">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 21V11.5M12 11.5L9 14.5M12 11.5L15 14.5M12 3V6M12 6L15 9M12 6L9 9M21 12H17.5M17.5L14.5 9M17.5 9L14.5 15M3 12H6.5M6.5L9.5 9M6.5 9L9.5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </a>
-      <!-- About Button -->
       <a href="#about" class="nav-icons" title="About">
         <svg viewBox="0 0 24 24">
           <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"/>
@@ -1102,7 +1133,6 @@
           <path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
         </svg>
       </a>
-      <!-- Contact Button -->
       <a href="#contact" class="nav-icons" title="Contact">
         <svg viewBox="0 0 24 24">
           <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"/>
@@ -1128,9 +1158,34 @@
   const morphingText = document.getElementById('morphing-text');
   const scrollTop = document.getElementById('scrollTop');
 
+  // Function to apply the theme
+  function applyTheme(theme) {
+      if (theme === 'dark') {
+          document.body.classList.add('dark-mode');
+      } else {
+          document.body.classList.remove('dark-mode');
+      }
+  }
+
+  // Check for saved theme in localStorage
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme) {
+      applyTheme(savedTheme);
+  } else {
+      // Check for system preference
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          applyTheme('dark');
+      }
+  }
+
   // Dark Mode Toggle
   modeToggle.addEventListener('click', () => {
       document.body.classList.toggle('dark-mode');
+      if (document.body.classList.contains('dark-mode')) {
+          localStorage.setItem('theme', 'dark');
+      } else {
+          localStorage.setItem('theme', 'light');
+      }
   });
 
   // Text Morphing Animation
