@@ -807,6 +807,8 @@
         justify-content: space-evenly;
     }
 
+
+
     body.dark-mode .nav-bar {
         background: rgba(12, 12, 12, 0.5);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -959,6 +961,16 @@
             height: 22px;
         }
     }
+    .nav-bar {
+    /* ... existing properties ... */
+    transition: transform 0.3s ease-in-out;
+    }
+
+    .nav-bar:hover {
+    transform: scale(1.06); /* Makes the bar grow by 2% on hover */
+    }
+
+
   </style>
 </head>
 <body>
@@ -997,26 +1009,21 @@
     <h2 class="section-title fade-in">Wary Games</h2>
     <div class="games-grid">
       <a href="chess.html" class="button-86 fade-in"><span class="game-icon">&#x265F;</span>Chess</a>
+      <a href="minesweeper.html" class="button-86 fade-in"><span class="game-icon">&#x1F4A3;</span>Minesweeper</a>
+      <a href="connectfour.html" class="button-86 fade-in delay-2"><span class="game-icon">&#x2B55;</span>Connect Four</a>
       <a href="uno.html" class="button-86 fade-in delay-1"><span class="game-icon">&#x1F0CF;</span>Uno</a>
+      <a href="2048.html" class="button-86 fade-in delay-3"><span class="game-icon">&#x1F522;</span>2048</a>
+      <a href="tic-tac-toe.html" class="button-86 fade-in delay-4"><span class="game-icon">&#x274C;</span>Tic-Tac-Toe</a>
       <a href="battle-ship.html" class="button-86 fade-in delay-2"><span class="game-icon">&#x1F6A2;</span>BattleShip</a>
       <a href="reversi.html" class="button-86 fade-in delay-3"><span class="game-icon">&#x261E;</span>Reversi</a>
       <a href="fox-and-hounds.html" class="button-86 fade-in delay-4"><span class="game-icon">&#x1F98A;</span>Fox and Hounds</a>
       <a href="dominoes.html" class="button-86 fade-in"><span class="game-icon">&#x1F032;</span>Dominoes</a>
       <a href="breakout.html" class="button-86 fade-in delay-1"><span class="game-icon">&#x1F3AE;</span>Breakout</a>
-      <a href="connectfour.html" class="button-86 fade-in delay-2"><span class="game-icon">&#x2B55;</span>Connect Four</a>
       <a href="typing-master.html" class="button-86 fade-in delay-3"><span class="game-icon">&#x2328;</span>Typing Master</a>
-
       <a href="checkers.html" class="button-86 fade-in delay-4"><span class="game-icon">&#x26C6;</span>Checkers</a>
       <a href="sudoku.html" class="button-86 fade-in"><span class="game-icon">&#x1F522;</span>Sudoku</a>
       <a href="cross-word.html" class="button-86 fade-in delay-1"><span class="game-icon">&#x1F4D6;</span>Crossword</a>
       <a href="hang-man.html" class="button-86 fade-in delay-2"><span class="game-icon">&#x1F6B9;</span>Hang Man</a>
-      <a href="2048.html" class="button-86 fade-in delay-3"><span class="game-icon">&#x1F522;</span>2048</a>
-      <a href="tic-tac-toe.html" class="button-86 fade-in delay-4"><span class="game-icon">&#x274C;</span>Tic-Tac-Toe</a>
-      <a href="minesweeper.html" class="button-86 fade-in"><span class="game-icon">&#x1F4A3;</span>Minesweeper</a>
-      <a href="poker.html" class="button-86 fade-in delay-1"><span class="game-icon">&#x1F0A0;</span>Poker</a>
-      <a href="mahjong.html" class="button-86 fade-in delay-2"><span class="game-icon">&#x1F004;</span>Mahjong</a>
-      <a href="blackjack.html" class="button-86 fade-in delay-3"><span class="game-icon">&#x1F0A1;</span>Blackjack</a>
-      <a href="roulette.html" class="button-86 fade-in delay-4"><span class="game-icon">&#x1F3B0;</span>Roulette</a>
     </div>
   </div>
 </section>
